@@ -475,7 +475,7 @@ def setup_initial_data():
             db.session.add_all([teacher1, teacher2])
         db.session.commit()
 
-
-if __name__ == '__main__':
-    setup_initial_data()
-    app.run(debug=True)
+#
+# if __name__ == '__main__':
+#     setup_initial_data()
+#     app.run(debug=True)

@@ -2,15 +2,43 @@
   "version": 2,
   "builds": [
     {
-      "src": " ./index.py",
+      "src": "build.sh",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "static"
+      }
+    },
+    {
+      "src": "app.py",
       "use": "@vercel/python",
-      "config": {"runtime": "Python 3.9.6"}
+      "config": {
+        "maxLambdaSize": "50mb",
+        "runtime": "python3.9"
+
+      }
+    },
+    {
+
+      "src": "static/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
+
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+
+
+      "src": "/uploads/(.*)",
+      "dest": "app.py"
+    },
+    {
+
       "src": "/(.*)",
-      "dest": "/"
+      "dest": "app.py"
     }
   ]
 }
