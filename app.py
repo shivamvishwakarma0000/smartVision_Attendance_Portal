@@ -35,9 +35,12 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), default='user')
 
-    def set_password(self, password): self.password_hash = generate_password_hash(password)
+    def set_password(self, password):
+        # *** THIS LINE IS THE CRITICAL FIX ***
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
 
-    def check_password(self, password): return check_password_hash(self.password_hash, password)
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 
 class Class(db.Model):
@@ -92,6 +95,25 @@ def load_user(user_id):
 
 
 # --- Routes ---
+
+# (All routes below remain exactly the same as the last version I provided)
+# ... dashboard() ...
+# ... manage_classes() ...
+# ... delete_class() ...
+# ... add_teacher() ...
+# ... manage_subjects() ...
+# ... delete_teacher() ...
+# ... delete_subject() ...
+# ... register_student() ...
+# ... take_attendance() ...
+# ... delete_attendance() ...
+# ... delete_todays_attendance() ...
+# ... view_reports() ... (Now named All Students)
+# ... delete_student() ...
+# ... uploaded_face() ...
+# ... login() ...
+# ... logout() ...
+# ... get_subjects() ...
 
 @app.route('/')
 @login_required
@@ -149,7 +171,7 @@ def delete_class(class_id):
     try:
         db.session.delete(class_to_delete)
         db.session.commit()
-        flash(f"Class '{class_to_delete.name}' and all its data have been deleted.", 'success')
+        flash(f"Class '{class_to_delete.name}' and all its associated data have been deleted.", 'success')
     except Exception as e:
         db.session.rollback()
         flash(f"Error deleting class: {e}", 'danger')
@@ -276,6 +298,7 @@ def register_student():
 @login_required
 def take_attendance():
     today = date.today()
+    results = None
 
     if request.method == 'POST':
         class_id = request.form.get('class_id')
@@ -284,6 +307,10 @@ def take_attendance():
 
         if not all([class_id, subject_id]):
             flash('Please select both a class and a subject.', 'warning')
+            return redirect(url_for('take_attendance'))
+
+        if not any(p.filename for p in group_photos):
+            flash('No group photos were uploaded.', 'danger')
             return redirect(url_for('take_attendance'))
 
         known_students = Student.query.filter_by(class_id=class_id).all()
@@ -302,16 +329,21 @@ def take_attendance():
                 filename = secure_filename(group_photo.filename)
                 filepath = os.path.join(GROUP_PHOTOS_FOLDER, filename)
                 group_photo.save(filepath)
-                unknown_image = face_recognition.load_image_file(filepath)
-                unknown_face_encodings = face_recognition.face_encodings(unknown_image)
-                total_faces_found += len(unknown_face_encodings)
-                for face_encoding in unknown_face_encodings:
-                    matches = face_recognition.compare_faces(known_face_encodings, face_encoding, tolerance=0.6)
-                    if True in matches:
-                        first_match_index = matches.index(True)
-                        student_id = known_students[first_match_index].id
-                        present_student_ids.add(student_id)
-                os.remove(filepath)
+                try:
+                    unknown_image = face_recognition.load_image_file(filepath)
+                    unknown_face_encodings = face_recognition.face_encodings(unknown_image)
+                    total_faces_found += len(unknown_face_encodings)
+                    for face_encoding in unknown_face_encodings:
+                        matches = face_recognition.compare_faces(known_face_encodings, face_encoding, tolerance=0.6)
+                        if True in matches:
+                            first_match_index = matches.index(True)
+                            student_id = known_students[first_match_index].id
+                            present_student_ids.add(student_id)
+                except Exception as e:
+                    flash(f"Error processing image {filename}: {e}", "danger")
+                finally:
+                    if os.path.exists(filepath):
+                        os.remove(filepath)
 
         for student_id in present_student_ids:
             if not Attendance.query.filter_by(student_id=student_id, date=today, subject_id=subject_id).first():
@@ -319,15 +351,25 @@ def take_attendance():
                 db.session.add(new_attendance)
         db.session.commit()
 
+        present_students_details = [known_student_data[sid] for sid in present_student_ids]
+        results = {
+            'total_faces': total_faces_found,
+            'present_students': present_students_details,
+            'subject_name': subject.name
+        }
+        flash(f"Attendance marked for {len(present_students_details)} student(s) in {subject.name}.", 'success')
+
     classes = Class.query.all()
     subjects = Subject.query.all()
     todays_records = Attendance.query.filter_by(date=today).all()
     attendance_log = defaultdict(list)
     for record in todays_records:
-        attendance_log[record.subject.name].append(record)
+        if record.subject:
+            attendance_log[record.subject.name].append(record)
 
     return render_template('take_attendance.html', classes=classes, subjects=subjects,
-                           attendance_log=dict(attendance_log), today=today.strftime('%Y-%m-%d'))
+                           attendance_log=dict(attendance_log), today=today.strftime('%Y-%m-%d'),
+                           results=results)
 
 
 @app.route('/delete_attendance/<int:attendance_id>', methods=['POST'])
@@ -357,14 +399,17 @@ def delete_todays_attendance():
 @app.route('/reports')
 @login_required
 def view_reports():
-    students = Student.query.all()
-    return render_template('view_reports.html', students=students)
+    # Renamed this route internally but URL is /reports
+    # Changed variable name for clarity
+    all_students = Student.query.order_by(Student.class_id, Student.name).all()
+    return render_template('view_reports.html', students=all_students)
 
 
 @app.route('/delete_student/<int:student_id>', methods=['POST'])
 @login_required
 def delete_student(student_id):
     student_to_delete = Student.query.get_or_404(student_id)
+    referrer = request.referrer
     try:
         image_filepath = os.path.join(FACES_FOLDER, student_to_delete.image_filename)
         if os.path.exists(image_filepath): os.remove(image_filepath)
@@ -374,7 +419,11 @@ def delete_student(student_id):
     except Exception as e:
         db.session.rollback()
         flash(f'Error deleting student: {e}', 'danger')
-    return redirect(url_for('view_reports'))
+
+    if referrer and 'dashboard' in referrer:
+        return redirect(url_for('dashboard'))
+    else:
+        return redirect(url_for('view_reports'))  # Redirect to 'view_reports' which shows all students
 
 
 @app.route('/uploads/faces/<filename>')
@@ -418,7 +467,7 @@ def setup_initial_data():
         db.create_all()
         if not User.query.filter_by(email='admin@smartvision.com').first():
             admin = User(name='Admin', email='admin@smartvision.com', role='admin')
-            admin.set_password('password123')
+            admin.set_password('password123')  # Uses the corrected method now
             db.session.add(admin)
         if not Teacher.query.first():
             teacher1 = Teacher(name='Dr. Sharma')
@@ -426,7 +475,7 @@ def setup_initial_data():
             db.session.add_all([teacher1, teacher2])
         db.session.commit()
 
-2
+
 if __name__ == '__main__':
     setup_initial_data()
     app.run(debug=True)
