@@ -1,0 +1,175 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 250px;
+    background-color: #212529;
+    color: white;
+    padding-top: 20px;
+    z-index: 1030; /* Ensure sidebar is above overlay */
+    transition: transform 0.3s ease; /* Add transition for sliding */
+    transform: translateX(0); /* Start visible on large screens */
+}
+
+.sidebar .sidebar-header {
+    padding: 0 20px 20px 20px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+.sidebar .nav-link {
+    color: #adb5bd;
+    font-size: 1.1rem;
+    padding: 12px 20px;
+    display: block;
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.sidebar .nav-link:hover {
+    background-color: #343a40;
+    color: #fff;
+}
+
+.sidebar .nav-link.active {
+    background-color: #0d6efd;
+    color: #fff;
+    font-weight: bold;
+}
+
+.main-content {
+    margin-left: 250px;
+    padding: 20px;
+    transition: margin-left 0.3s ease; /* Add transition for smoothness */
+}
+
+.top-bar {
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex; /* Use flexbox for alignment */
+    align-items: center; /* Vertically align items */
+}
+
+.card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.student-card {
+    margin-bottom: 20px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.student-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.student-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.student-card .card-body {
+    padding: 15px;
+}
+
+.student-card .card-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.student-card .card-text {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 15px;
+}
+
+.sidebar-footer {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #818890;
+}
+
+/* --- Responsive Styles --- */
+
+/* Style for the hamburger button */
+.sidebar-toggle {
+    display: none; /* Hidden by default on large screens */
+    background: none;
+    border: none;
+    color: #212529; /* Dark color for light top bar */
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-right: 15px; /* Spacing */
+    padding: 0; /* Remove default button padding */
+    line-height: 1; /* Align icon better */
+}
+
+/* Optional: Style for the overlay */
+.overlay {
+    display: none;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1020; /* Below sidebar, above content */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+
+/* Styles for screens smaller than 992px (tablets and phones) */
+@media (max-width: 991.98px) {
+    .sidebar {
+        /* Start hidden off-screen */
+        transform: translateX(-100%);
+    }
+
+    .sidebar.active {
+        /* Slide in when active */
+        transform: translateX(0);
+        box-shadow: 0 0 15px rgba(0,0,0,0.2); /* Add shadow when open */
+    }
+
+    .main-content {
+        /* Take full width */
+        margin-left: 0;
+    }
+
+    .sidebar-toggle {
+        /* Show the toggle button */
+        display: block;
+    }
+
+     /* Ensure top bar content aligns correctly with button */
+    .top-bar h5 {
+       margin-bottom: 0; /* Remove default heading margin */
+       margin-left: auto; /* Push heading to the right if needed, or adjust alignment */
+       flex-grow: 1; /* Allow heading to take space */
+       text-align: left; /* Or center/right as needed */
+    }
+}

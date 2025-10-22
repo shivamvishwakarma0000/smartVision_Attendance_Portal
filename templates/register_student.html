@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Register Student{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h4>Register New Student</h4>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="class_id" class="form-label">Assign to Class</label>
+                <select class="form-select" id="class_id" name="class_id" required>
+                    <option selected disabled value="">Choose a class...</option>
+                    {% for class_item in classes %}
+                    <option value="{{ class_item.id }}">{{ class_item.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="name" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="mb-3">
+                <label for="roll_no" class="form-label">Roll Number</label>
+                <input type="text" class="form-control" id="roll_no" name="roll_no" required>
+            </div>
+            <div class="mb-3">
+                <label for="enrollment_no" class="form-label">Enrollment Number</label>
+                <input type="text" class="form-control" id="enrollment_no" name="enrollment_no" required>
+            </div>
+            <div class="mb-3">
+                <label for="student_photo" class="form-label">Student Photo (Clear, single face)</label>
+                <input type="file" class="form-control" id="student_photo" name="student_photo" accept="image/*" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Register Student</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

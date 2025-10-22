@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Top Row with Stats -->
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body text-center">
+                <h5 class="card-title">Total Students</h5>
+                <p class="card-text fs-1 fw-bold">{{ student_count }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body text-center">
+                <h5 class="card-title">Subjects Managed</h5>
+                <p class="card-text fs-1 fw-bold">{{ subjects_managed }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Chart -->
+<div class="card mt-4">
+    <div class="card-header">
+        Today's Attendance Overview
+    </div>
+    <div class="card-body" style="height: 350px;">
+        <!-- The canvas element for the chart remains the same -->
+        <canvas id="attendanceChart"></canvas>
+    </div>
+</div>
+
+<!-- START: Registered Students Section -->
+<hr class="my-4">
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Registered Students</h4>
+    <a href="{{ url_for('register_student') }}" class="btn btn-primary">Add New Student</a>
+</div>
+
+{% if students %}
+<div class="row">
+    {% for student in students %}
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="card student-card">
+            <img src="{{ url_for('uploaded_face', filename=student.image_filename) }}" class="card-img-top" alt="Photo of {{ student.name }}">
+            <div class="card-body">
+                <h5 class="card-title">{{ student.name }}</h5>
+                <p class="card-text">
+                    <strong>Roll No:</strong> {{ student.roll_no }}<br>
+                    <strong>Enrollment:</strong> {{ student.enrollment_no }}
+                </p>
+                <form action="{{ url_for('delete_student', student_id=student.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this student?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete Student</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center mt-4">
+    <p>No students have been registered yet.</p>
+</div>
+{% endif %}
+<!-- END: Registered Students Section -->
+
+
+<!-- THIS IS THE UPDATED JAVASCRIPT BLOCK -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('attendanceChart').getContext('2d');
+
+    // These variables now get their data directly from your Python code
+    const subjectNames = {{ subject_names | tojson }};
+    const attendanceData = {{ attendance_percentages | tojson }};
+
+    // If there are no subjects, show a message instead of an empty chart
+    if (subjectNames.length === 0) {
+        ctx.font = "16px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("No subjects registered yet. Add subjects to see attendance data.", ctx.canvas.width / 2, ctx.canvas.height / 2);
+        return;
+    }
+
+    const attendanceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: subjectNames, // Use the real subject names
+            datasets: [{
+                label: '% Present Today',
+                data: attendanceData, // Use the real attendance percentages
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `% Present: ${context.raw}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
