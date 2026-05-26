@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - SmartVision{% endblock %}
+{% block page_title %}Student Analytics Portal{% endblock %}
+
+{% block content %}
+{% if pending_request %}
+<div class="alert alert-warning border-0 shadow-sm rounded-3 py-3 mb-4 fade-in" style="background-color: var(--warning-bg); color: var(--warning);">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h6 class="fw-bold mb-1"><i class="fa-solid fa-hourglass-half text-warning me-2"></i> Profile Update Request Pending Review</h6>
+            You have a pending profile change request submitted on <strong>{{ pending_request.created_at.strftime('%B %d, %Y') }}</strong>. Your changes will reflect once an administrator reviews and approves them.
+        </div>
+        <a href="{{ url_for('student.edit_profile') }}" class="btn btn-sm btn-warning text-dark fw-bold">View Request</a>
+    </div>
+</div>
+{% endif %}
+<!-- Top Row: Student Profile Overview -->
+<div class="row mb-4">
+    <div class="col-lg-4 mb-3">
+        <div class="card h-100 p-4 shadow-sm border-0 d-flex flex-column align-items-center justify-content-center text-center">
+            <div class="position-relative mb-3">
+                {% if student.image_filename %}
+                    <img src="{{ url_for('main.uploaded_face', filename=student.image_filename) }}" 
+                         class="rounded-circle shadow" 
+                         style="width: 140px; height: 140px; object-fit: cover; border: 4px solid var(--primary);">
+                {% else %}
+                    <div class="rounded-circle shadow bg-light d-flex align-items-center justify-content-center text-muted" 
+                          style="width: 140px; height: 140px; border: 4px solid var(--primary); font-size: 3rem;">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <h4 class="fw-bold mb-1 text-primary">{{ student.name }}</h4>
+            <span class="badge badge-attendance badge-present mb-3">Active Student</span>
+            
+            <div class="w-100 text-start mt-2 px-3 fs-7" style="font-size: 0.9rem;">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Class:</span>
+                    <strong class="text-dark">{{ student.class_assigned.name }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Roll No:</span>
+                    <strong class="text-dark">{{ student.roll_no }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Enrollment:</span>
+                    <strong class="text-dark">{{ student.enrollment_no }}</strong>
+                </div>
+            </div>
+            
+            <a href="{{ url_for('student.edit_profile') }}" class="btn btn-sm btn-outline-primary mt-3">
+                Edit Profile Details
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Summary Cards -->
+    <div class="col-lg-8">
+        <div class="row h-100">
+            <!-- Total Subjects Card -->
+            <div class="col-md-6 mb-3">
+                <div class="card h-100 stat-card-gradient-primary border-0 p-4 shadow-sm">
+                    <h6 class="text-muted fw-semibold">Subjects Registered</h6>
+                    <h2 class="fw-bold mt-2 text-primary">{{ subject_stats|length }}</h2>
+                    <p class="text-muted fs-7 mb-0 mt-auto">Subjects currently active in your class curriculum.</p>
+                </div>
+            </div>
+
+            <!-- Overall Attendance Percentage -->
+            {% set total_held = namespace(val=0) %}
+            {% set total_attended = namespace(val=0) %}
+            {% for name, stat in subject_stats.items() %}
+                {% set total_held.val = total_held.val + stat.total %}
+                {% set total_attended.val = total_attended.val + stat.present %}
+            {% endfor %}
+            
+            {% if total_held.val > 0 %}
+                {% set overall_pct = (total_attended.val / total_held.val) * 100 %}
+            {% else %}
+                {% set overall_pct = 0.0 %}
+            {% endif %}
+
+            <div class="col-md-6 mb-3">
+                <div class="card h-100 {% if overall_pct >= 75 %}stat-card-gradient-success{% else %}stat-card-gradient-warning{% endif %} border-0 p-4 shadow-sm">
+                    <h6 class="text-muted fw-semibold">Overall Attendance</h6>
+                    <h2 class="fw-bold mt-2 {% if overall_pct >= 75 %}text-success{% else %}text-warning{% endif %}">
+                        {{ overall_pct|round(2) }}%
+                    </h2>
+                    <div class="progress mt-3 mb-2" style="height: 6px;">
+                        <div class="progress-bar {% if overall_pct >= 75 %}bg-success{% else %}bg-warning{% endif %}" 
+                             role="progressbar" 
+                             style="width: {{ overall_pct }}%" 
+                             aria-valuenow="{{ overall_pct }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100"></div>
+                    </div>
+                    <span class="text-muted fs-7">
+                        Attended {{ total_attended.val }} out of {{ total_held.val }} sessions. 
+                        {% if overall_pct < 75 %}
+                            <strong class="text-danger">Below 75% criteria!</strong>
+                        {% else %}
+                            <strong class="text-success">Good standing.</strong>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Chart & Subject List -->
+<div class="row mb-4">
+    <!-- Chart -->
+    <div class="col-lg-7 mb-3">
+        <div class="card p-4 shadow-sm border-0 h-100">
+            <h5 class="fw-bold mb-3 text-dark">Subject Attendance Chart</h5>
+            <div style="height: 320px; position: relative;">
+                <canvas id="attendanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Subject Wise Breakdown list -->
+    <div class="col-lg-5 mb-3">
+        <div class="card p-4 shadow-sm border-0 h-100" style="max-height: 388px; overflow-y: auto;">
+            <h5 class="fw-bold mb-3 text-dark">Subject Breakdown</h5>
+            <div class="list-group list-group-flush">
+                {% for subject, stat in subject_stats.items() %}
+                <div class="list-group-item px-0 py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold mb-1">{{ subject }}</h6>
+                        <span class="text-muted fs-7" style="font-size: 0.8rem;">Prof: {{ stat.teacher }}</span>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge {% if stat.percentage >= 75 %}badge-present{% else %}badge-absent{% endif %} mb-1">
+                            {{ stat.percentage }}%
+                        </span>
+                        <div class="text-muted fs-7" style="font-size: 0.8rem;">{{ stat.present }}/{{ stat.total }} attended</div>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-center text-muted my-4">No subjects registered yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Log History -->
+<div class="card p-4 shadow-sm border-0">
+    <h5 class="fw-bold mb-3 text-dark">Detailed Attendance Log</h5>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Subject Name</th>
+                    <th>Teacher Name</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td class="fw-semibold">{{ record.date.strftime('%B %d, %Y') }}</td>
+                    <td class="text-muted">{{ record.time_marked if record.time_marked else '--' }}</td>
+                    <td>{{ record.subject.name }}</td>
+                    <td>{{ record.subject.teacher.name if record.subject.teacher else 'No Teacher' }}</td>
+                    <td>
+                        <span class="badge badge-attendance {% if record.status == 'Present' %}badge-present{% else %}badge-absent{% endif %}">
+                            {{ record.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">No attendance records have been registered for you yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Chart.js Logic -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('attendanceChart').getContext('2d');
+    const subjectNames = {{ subject_names | tojson }};
+    const attendanceData = {{ attendance_percentages | tojson }};
+
+    if (subjectNames.length === 0) {
+        ctx.font = "16px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("No subjects registered yet.", ctx.canvas.width / 2, ctx.canvas.height / 2);
+        return;
+    }
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: subjectNames,
+            datasets: [{
+                label: 'Attendance %',
+                data: attendanceData,
+                backgroundColor: 'rgba(99, 102, 241, 0.65)',
+                borderColor: 'rgba(99, 102, 241, 1)',
+                borderWidth: 1.5,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

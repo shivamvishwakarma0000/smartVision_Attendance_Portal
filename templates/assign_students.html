@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Assign Students to Classes - SmartVision{% endblock %}
+{% block page_title %}Assign Students to Classes{% endblock %}
+
+{% block content %}
+
+<!-- Header Section -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-1" style="color: var(--text-primary);">
+            <i class="fa-solid fa-people-arrows text-warning me-2"></i>Unclassified Students
+        </h4>
+        <p class="text-muted mb-0 fs-7">
+            These students have registered but have not been assigned a class yet. 
+            Assign each student to their correct class below.
+        </p>
+    </div>
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+</div>
+
+{% if unclassified_students %}
+
+<div class="card border-0 shadow-sm mb-4" style="background: var(--bg-card); border: 1px solid var(--border-card);">
+    <div class="card-header border-bottom" style="background: var(--bg-card);">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <span class="fw-semibold" style="color: var(--text-primary);">
+                <i class="fa-solid fa-users-slash text-warning me-2"></i>
+                {{ unclassified_students|length }} Student{% if unclassified_students|length != 1 %}s{% endif %} Awaiting Class Assignment
+            </span>
+            <div class="d-flex gap-2 align-items-center">
+                <!-- Bulk assign controls -->
+                <label class="text-muted fs-8 mb-0">Assign All To:</label>
+                <select id="bulkClassSelect" class="form-select form-select-sm" style="width: 200px; font-size: 0.82rem;">
+                    <option value="">— Select Class —</option>
+                    {% for class_item in classes %}
+                    <option value="{{ class_item.id }}">{{ class_item.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" id="bulkAssignBtn" class="btn btn-warning btn-sm fw-semibold">
+                    <i class="fa-solid fa-bolt me-1"></i> Apply to All
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('main.assign_students') }}" id="assignForm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="color: var(--text-primary);">
+                <thead style="background: rgba(99,102,241,0.07); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    <tr>
+                        <th class="ps-4 py-3" style="width: 40px;">
+                            <input type="checkbox" id="selectAll" class="form-check-input" title="Select all">
+                        </th>
+                        <th class="py-3">Student</th>
+                        <th class="py-3">Roll No</th>
+                        <th class="py-3">Enrollment No</th>
+                        <th class="py-3">Mobile</th>
+                        <th class="py-3">Registered Email</th>
+                        <th class="py-3" style="min-width: 220px;">Assign Class</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in unclassified_students %}
+                    <tr class="student-row" data-student-id="{{ student.id }}">
+                        <td class="ps-4">
+                            <input type="checkbox" class="form-check-input student-check" data-id="{{ student.id }}">
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if student.image_filename %}
+                                    <img src="{{ url_for('main.uploaded_face', filename=student.image_filename) }}"
+                                         alt="{{ student.name }}"
+                                         class="rounded-circle border"
+                                         style="width: 38px; height: 38px; object-fit: cover; border-color: var(--border-card) !important;">
+                                {% else %}
+                                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold"
+                                         style="width: 38px; height: 38px; font-size: 0.85rem; flex-shrink: 0;">
+                                        {{ student.name[0].upper() }}
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-semibold" style="font-size: 0.9rem;">{{ student.name }}</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">
+                                        {% if student.face_encoding %}
+                                            <i class="fa-solid fa-circle-check text-success me-1"></i>Face registered
+                                        {% else %}
+                                            <i class="fa-solid fa-circle-xmark text-danger me-1"></i>No face photo
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border" style="font-size: 0.78rem;">{{ student.roll_no }}</span>
+                        </td>
+                        <td>
+                            <span class="text-muted" style="font-size: 0.85rem;">{{ student.enrollment_no }}</span>
+                        </td>
+                        <td>
+                            <span class="text-muted" style="font-size: 0.85rem;">
+                                {% if student.mobile %}
+                                    <i class="fa-solid fa-phone fa-xs me-1 text-success"></i>{{ student.mobile }}
+                                {% else %}
+                                    <span class="text-muted fst-italic">—</span>
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-muted" style="font-size: 0.85rem;">
+                                {% if student.user_account %}
+                                    {{ student.user_account.email }}
+                                {% else %}
+                                    <span class="fst-italic">—</span>
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <select name="class_for_student_{{ student.id }}"
+                                    class="form-select form-select-sm class-select"
+                                    data-student-id="{{ student.id }}"
+                                    style="font-size: 0.82rem; border-radius: 8px;">
+                                <option value="">— Select a class —</option>
+                                {% for class_item in classes %}
+                                <option value="{{ class_item.id }}">{{ class_item.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: var(--bg-card); border-top: 1px solid var(--border-card);">
+            <span class="text-muted fs-8">
+                <i class="fa-solid fa-circle-info me-1 text-primary"></i>
+                Select a class for each student and click "Save Assignments" to confirm.
+            </span>
+            <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm">
+                <i class="fa-solid fa-floppy-disk me-2"></i>Save Assignments
+            </button>
+        </div>
+    </form>
+</div>
+
+{% else %}
+
+<!-- Empty State -->
+<div class="card border-0 shadow-sm text-center py-5" style="background: var(--bg-card);">
+    <div class="card-body">
+        <div class="mb-3">
+            <i class="fa-solid fa-circle-check fa-4x text-success opacity-75"></i>
+        </div>
+        <h5 class="fw-bold text-success">All Students are Classified!</h5>
+        <p class="text-muted mb-4">Every registered student has been assigned to a class. No action needed.</p>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
+            <i class="fa-solid fa-chart-simple me-2"></i>Back to Dashboard
+        </a>
+    </div>
+</div>
+
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Select All checkbox
+    const selectAll = document.getElementById('selectAll');
+    const studentChecks = document.querySelectorAll('.student-check');
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function () {
+            studentChecks.forEach(cb => cb.checked = selectAll.checked);
+        });
+    }
+
+    // Bulk assign button
+    const bulkAssignBtn = document.getElementById('bulkAssignBtn');
+    const bulkClassSelect = document.getElementById('bulkClassSelect');
+
+    if (bulkAssignBtn && bulkClassSelect) {
+        bulkAssignBtn.addEventListener('click', function () {
+            const selectedClass = bulkClassSelect.value;
+            if (!selectedClass) {
+                alert('Please select a class first to use bulk assignment.');
+                return;
+            }
+
+            // Apply to checked students, or all if none checked
+            const checkedIds = Array.from(studentChecks)
+                .filter(cb => cb.checked)
+                .map(cb => cb.dataset.id);
+
+            const selects = document.querySelectorAll('.class-select');
+            selects.forEach(sel => {
+                const studentId = sel.dataset.studentId;
+                if (checkedIds.length === 0 || checkedIds.includes(studentId)) {
+                    sel.value = selectedClass;
+                    // Visual feedback
+                    sel.style.borderColor = 'var(--success)';
+                    setTimeout(() => sel.style.borderColor = '', 1200);
+                }
+            });
+        });
+    }
+
+    // Highlight rows when class selected
+    document.querySelectorAll('.class-select').forEach(sel => {
+        sel.addEventListener('change', function () {
+            const row = this.closest('tr');
+            if (this.value) {
+                row.style.background = 'rgba(16, 185, 129, 0.04)';
+            } else {
+                row.style.background = '';
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}

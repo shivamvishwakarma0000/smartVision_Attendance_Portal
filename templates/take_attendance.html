@@ -1,105 +1,230 @@
 {% extends "base.html" %}
 
-{% block title %}Take Attendance{% endblock %}
+{% block title %}Take Attendance - SmartVision{% endblock %}
+{% block page_title %}Facial Recognition Attendance Scan{% endblock %}
 
 {% block content %}
 <div class="row">
     <!-- Left Column: Take Attendance Form -->
-    <div class="col-md-7">
-        <div class="card">
-            <div class="card-header">
-                <h4>Take Attendance</h4>
-            </div>
-            <div class="card-body">
-                <p>First select a class, then the subjects for that class will appear.</p>
-                <form method="POST" action="" enctype="multipart/form-data" class="mb-4">
-                    <!-- 1. Select Class Dropdown -->
-                    <div class="mb-3">
-                        <label for="class_id" class="form-label">1. Select Class</label>
-                        <select class="form-select" id="class_id" name="class_id" required>
-                            <option selected disabled value="">Choose a class...</option>
-                            {% for class_item in classes %}
-                            <option value="{{ class_item.id }}">{{ class_item.name }}</option>
-                            {% endfor %}
-                        </select>
+    <div class="col-lg-7 mb-4">
+        <div class="card shadow-sm border-0 p-4 h-100">
+            <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-camera me-2"></i> Image Recognition Attendance</h5>
+            <p class="text-muted mb-4">Select a class register and subject. Upload classroom group photos to run the facial identification scan matching face profiles instantly.</p>
+            
+            <form method="POST" action="" enctype="multipart/form-data" class="mb-4" id="attendanceForm" onsubmit="return window.validateAttendanceForm();">
+                <!-- 1. Select Class Dropdown -->
+                <div class="mb-3">
+                    <label for="class_id" class="form-label fw-semibold">1. Select Class Register</label>
+                    <select class="form-select" id="class_id" name="class_id" required>
+                        <option selected disabled value="">Choose a class...</option>
+                        {% for class_item in classes %}
+                        <option value="{{ class_item.id }}">{{ class_item.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- 2. Select Subject Dropdown -->
+                <div class="mb-3">
+                    <label for="subject_id" class="form-label fw-semibold">2. Select Subject</label>
+                    <select class="form-select" id="subject_id" name="subject_id" required disabled>
+                        <option>Please select a class first</option>
+                    </select>
+                    <!-- Dynamically display Subject Teacher/Faculty name -->
+                    <div id="subjectTeacherInfo" class="mt-2 text-muted fs-7 animate fade-in" style="display: none;">
+                        <span class="badge bg-light text-primary border px-2.5 py-1.5 fs-8">
+                            <i class="fa-solid fa-chalkboard-user text-primary me-1"></i> Assigned Faculty: <strong class="text-dark" id="subjectTeacherName">--</strong>
+                        </span>
                     </div>
-                    <!-- 2. Select Subject Dropdown (will be populated by JavaScript) -->
-                    <div class="mb-3">
-                        <label for="subject_id" class="form-label">2. Select Subject</label>
-                        <select class="form-select" id="subject_id" name="subject_id" required disabled>
-                            <option>Please select a class first</option>
-                        </select>
+                </div>
+                
+                <!-- 3. Photo Input Mode and Selection -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold mb-2">3. Classroom Group Photo(s)</label>
+                    
+                    <!-- Mode Selector Tab -->
+                    <div class="d-flex gap-2 mb-3 bg-light p-1 rounded-3 border">
+                        <button type="button" class="btn btn-sm btn-primary w-50 py-1.5" id="btn-local-mode-attendance" onclick="window.setAttendanceMode('local')" style="font-size: 0.85rem;">
+                            <i class="fa-solid fa-image me-1"></i> Local File(s)
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary w-50 py-1.5" id="btn-camera-mode-attendance" onclick="window.setAttendanceMode('camera')" style="font-size: 0.85rem;">
+                            <i class="fa-solid fa-camera me-1"></i> Camera Capture
+                        </button>
                     </div>
-                    <!-- 3. Upload Photos -->
-                    <div class="mb-3">
-                        <label for="group_photo" class="form-label">3. Upload Group Photo(s)</label>
-                        <input type="file" class="form-control" id="group_photo" name="group_photo" accept="image/*" multiple required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Mark Attendance</button>
-                </form>
-            </div>
-        </div>
 
-        <!-- Results from last scan will appear here -->
-        {% if results %}
-        <div class="card mt-4">
-            <div class="card-header"><h4>Last Scan Results for {{ results.subject_name }}</h4></div>
-            <div class="card-body">
-                <div class="alert alert-info">Found {{ results.total_faces }} face(s). Marked {{ results.present_students|length }} student(s) as present.</div>
-                {% if results.present_students %}
-                    <h5>Present Students in Last Scan:</h5>
-                    <ul class="list-group">
-                        {% for student in results.present_students %}<li class="list-group-item">{{ student.name }} (Roll No: {{ student.roll_no }})</li>{% endfor %}
-                    </ul>
-                {% else %}
-                    <p>No registered students were recognized.</p>
-                {% endif %}
-            </div>
+                    <!-- Local File Input Container -->
+                    <div id="file-input-container-attendance">
+                        <div class="attendance-upload-container">
+                            <span class="fs-1 d-block mb-2 text-primary"><i class="fa-solid fa-cloud-arrow-up"></i></span>
+                            <h6 class="fw-bold mb-1">Click to Upload Group Images</h6>
+                            <span class="text-muted fs-7 mb-3 d-block">You can select multiple photos at once</span>
+                            <input type="file" class="form-control" id="group_photo" name="group_photo" accept="image/*" multiple required>
+                        </div>
+                    </div>
+
+                    <!-- In-App Camera Section -->
+                    <div id="camera-section-attendance" class="d-none border p-3 rounded-3 bg-light text-center" style="background: rgba(0,0,0,0.03); border-color: rgba(99,102,241,0.15) !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fs-7 text-muted fw-bold"><i class="fa-solid fa-circle-play text-success me-1"></i> Live Camera</span>
+                            <button type="button" class="btn btn-xs btn-outline-secondary py-1 px-2" onclick="window.toggleAttendanceCameraDirection()" style="font-size: 0.75rem;">
+                                <i class="fa-solid fa-arrows-rotate me-1"></i> Flip Camera
+                            </button>
+                        </div>
+                        <video id="webcam-attendance" autoplay playsinline class="w-100 rounded-3 border bg-dark mb-2 shadow-sm" style="max-height: 240px; object-fit: cover;"></video>
+                        <canvas id="canvas-attendance" class="d-none"></canvas>
+                        
+                        <div class="d-flex justify-content-center mb-3">
+                            <button type="button" class="btn btn-primary btn-sm px-4 py-2" onclick="window.captureAttendancePhoto()">
+                                <i class="fa-solid fa-camera me-1"></i> Capture Photo
+                            </button>
+                        </div>
+                        
+                        <!-- Grid of captured photos -->
+                        <div class="text-start mb-2">
+                            <span class="fw-bold text-dark fs-7">Captured Frames (<span id="captured-count">0</span>):</span>
+                        </div>
+                        <div id="captured-frames-grid" class="row row-cols-3 g-2 mb-2">
+                            <!-- Dynamically generated previews -->
+                        </div>
+                        
+                        <!-- Hidden inputs wrapper -->
+                        <div id="hidden-inputs-container"></div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 py-2.5 shadow">
+                    Mark Attendance & Match Faces
+                </button>
+            </form>
         </div>
-        {% endif %}
     </div>
 
-    <!-- Right Column: Permanent Attendance Log -->
-    <div class="col-md-5">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4>Today's Attendance Log</h4>
-                {% if attendance_log %}<form action="{{ url_for('delete_todays_attendance') }}" method="POST" onsubmit="return confirm('Delete ALL attendance for today?');"><button type="submit" class="btn btn-sm btn-danger">Delete All Today</button></form>{% endif %}
+    <!-- Right Column: Today's Attendance Log -->
+    <div class="col-lg-5 mb-4">
+        <div class="card shadow-sm border-0 p-4 h-100 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-list-check text-secondary me-2"></i> Today's Session Logs</h5>
+                {% if attendance_log %}
+                <form action="{{ url_for('main.delete_todays_attendance') }}" 
+                      method="POST" 
+                      onsubmit="return confirm('Are you sure you want to delete ALL of today\'s attendance logs?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger py-1">Clear All</button>
+                </form>
+                {% endif %}
             </div>
-            <div class="card-body" style="max-height: 80vh; overflow-y: auto;">
+            
+            <div class="flex-grow-1" style="max-height: 480px; overflow-y: auto;">
                 {% if attendance_log %}
                     {% for subject_name, records in attendance_log.items() %}
-                        <h5>{{ subject_name }}</h5>
-                        <p class="text-muted">Date: {{ today }}</p>
-                        <div class="alert alert-light p-2"><strong class="me-2">Present:</strong><span>{{ records|map(attribute='student.roll_no')|join(',') }}</span></div>
-                        <button class="btn btn-success btn-sm mb-3 copy-btn" data-roll-numbers="{{ records|map(attribute='student.roll_no')|join(',') }}">Copy Roll Numbers</button>
-                        <ul class="list-group mb-4">
-                        {% for record in records %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div><strong>{{ record.student.name }}</strong><br><small class="text-muted">Roll: {{ record.student.roll_no }}</small></div>
-                                <form action="{{ url_for('delete_attendance', attendance_id=record.id) }}" method="POST" onsubmit="return confirm('Delete this record?');"><button type="submit" class="btn btn-sm btn-outline-danger">&times;</button></form>
-                            </li>
-                        {% endfor %}
-                        </ul>
+                        <div class="border-bottom pb-3 mb-3">
+                            <h6 class="fw-bold text-primary mb-1">{{ subject_name }}</h6>
+                            <p class="text-muted fs-8 mb-2">Scan Date: {{ today }}</p>
+                            
+                            <div class="d-flex align-items-center justify-content-between bg-light p-2 rounded mb-2">
+                                <span class="text-muted fs-7">Roll List:</span>
+                                <strong class="text-dark fs-7" style="word-break: break-all;">
+                                    {{ records|map(attribute='student.roll_no')|join(', ') }}
+                                </strong>
+                            </div>
+                            
+                            <div class="row g-2 mb-2">
+                                <div class="col-6">
+                                    <button class="btn btn-success btn-sm w-100 copy-btn" 
+                                            data-roll-numbers="{{ records|map(attribute='student.roll_no')|join(',') }}">
+                                        Copy Roll Numbers
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button class="btn btn-outline-success btn-sm w-100 whatsapp-btn" 
+                                            data-subject="{{ subject_name }}"
+                                            data-roll-numbers="{{ records|map(attribute='student.roll_no')|join(',') }}">
+                                        Send to WhatsApp
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-sm btn-outline-primary w-100 mb-3 toggle-details-btn" data-target="details-list-{{ loop.index }}">
+                                <i class="fa-solid fa-eye me-1"></i> Show Details
+                            </button>
+                            
+                            <ul class="list-group list-group-flush border rounded details-list" id="details-list-{{ loop.index }}" style="display: none;">
+                            {% for record in records %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+                                    <div>
+                                        <strong class="text-dark fs-7">{{ record.student.name }}</strong><br>
+                                        <small class="text-muted fs-8">Roll: {{ record.student.roll_no }} {% if record.time_marked %}| Time: {{ record.time_marked }}{% endif %}</small>
+                                    </div>
+                                    <form action="{{ url_for('main.delete_attendance', attendance_id=record.id) }}" 
+                                          method="POST" 
+                                          onsubmit="return confirm('Delete this record?');">
+                                        <button type="submit" class="btn btn-sm btn-link text-danger text-decoration-none px-1 py-0">&times;</button>
+                                    </form>
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        </div>
                     {% endfor %}
                 {% else %}
-                    <p class="text-center">No attendance has been marked for today yet.</p>
+                    <div class="text-center py-5">
+                        <span class="fs-1 text-muted"><i class="fa-solid fa-folder-open"></i></span>
+                        <p class="text-muted mt-3 mb-0">No attendance records have been registered for today yet.</p>
+                    </div>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
 
-<!-- JavaScript for dynamic subject loading and copy-to-clipboard -->
+<!-- Last Scan Results Section -->
+{% if results %}
+<div class="card shadow-sm border-0 p-4 mt-4 fade-in">
+    <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-bolt text-warning me-2"></i> Scan Details: {{ results.subject_name }}</h5>
+    <div class="row align-items-center">
+        <div class="col-md-4 mb-3 text-center">
+            <div class="scan-box-wrapper mx-auto shadow" style="width: 160px; height: 160px; border: 4px solid var(--border-card);">
+                <div class="scan-laser-line"></div>
+                <div class="bg-primary text-white d-flex flex-column align-items-center justify-content-center h-100">
+                    <span class="fs-2 text-white"><i class="fa-solid fa-circle-check"></i></span>
+                    <span class="fs-8 mt-1">Camera Matched</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8 mb-3">
+            <div class="alert alert-info border-0 shadow-sm rounded-3 py-3" style="background-color: var(--primary-bg); color: var(--primary);">
+                <h6 class="fw-bold mb-1">Face Recognition Summary:</h6>
+                Found <strong class="fs-5">{{ results.total_faces }}</strong> face(s) in photo(s). 
+                Successfully identified <strong class="fs-5">{{ results.present_students|length }}</strong> student(s) from your class register.
+            </div>
+            
+            {% if results.present_students %}
+                <h6 class="fw-bold text-dark mt-3 mb-2">Identified Students:</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for student in results.present_students %}
+                        <span class="badge badge-attendance badge-present py-2 px-3 fs-8">
+                            {{ student.name }} (Roll: {{ student.roll_no }})
+                        </span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted mt-2">No registered students were recognized in this scan. Please make sure the student photos are high quality and faces are clear.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- AJAX dynamic subject loaders & clipboard copying -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const classSelect = document.getElementById('class_id');
     const subjectSelect = document.getElementById('subject_id');
+    const teacherInfoDiv = document.getElementById('subjectTeacherInfo');
+    const teacherNameSpan = document.getElementById('subjectTeacherName');
 
     classSelect.addEventListener('change', function() {
         const classId = this.value;
         subjectSelect.disabled = true;
         subjectSelect.innerHTML = '<option>Loading subjects...</option>';
+        if (teacherInfoDiv) teacherInfoDiv.style.display = 'none';
 
         if (classId) {
             fetch(`/get_subjects/${classId}`)
@@ -111,15 +236,34 @@ document.addEventListener('DOMContentLoaded', function() {
                             const option = document.createElement('option');
                             option.value = subject.id;
                             option.textContent = subject.name;
+                            option.setAttribute('data-teacher', subject.teacher_name);
                             subjectSelect.appendChild(option);
                         });
                         subjectSelect.disabled = false;
                     } else {
                         subjectSelect.innerHTML = '<option>No subjects found for this class</option>';
                     }
+                })
+                .catch(error => {
+                    console.error("AJAX Error loading subjects:", error);
+                    subjectSelect.innerHTML = '<option>Error loading subjects</option>';
                 });
         }
     });
+
+    if (subjectSelect) {
+        subjectSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const teacherName = selectedOption ? selectedOption.getAttribute('data-teacher') : null;
+            
+            if (teacherName && teacherName !== 'No Teacher') {
+                if (teacherNameSpan) teacherNameSpan.textContent = teacherName;
+                if (teacherInfoDiv) teacherInfoDiv.style.display = 'block';
+            } else {
+                if (teacherInfoDiv) teacherInfoDiv.style.display = 'none';
+            }
+        });
+    }
 
     const copyButtons = document.querySelectorAll('.copy-btn');
     copyButtons.forEach(button => {
@@ -142,6 +286,182 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 1500);
         });
     });
+
+    const whatsappButtons = document.querySelectorAll('.whatsapp-btn');
+    whatsappButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const rollNumbers = this.getAttribute('data-roll-numbers');
+            const subject = this.getAttribute('data-subject');
+            const message = `Present Students Roll List for ${subject}: ${rollNumbers}`;
+            const encodedText = encodeURIComponent(message);
+            window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+        });
+    });
+
+    const toggleButtons = document.querySelectorAll('.toggle-details-btn');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const targetEl = document.getElementById(targetId);
+            if (targetEl) {
+                if (targetEl.style.display === 'none' || targetEl.style.display === '') {
+                    targetEl.style.display = 'block';
+                    this.innerHTML = '<i class="fa-solid fa-eye-slash me-1"></i> Hide Details';
+                } else {
+                    targetEl.style.display = 'none';
+                    this.innerHTML = '<i class="fa-solid fa-eye me-1"></i> Show Details';
+                }
+            }
+        });
+    });
 });
+
+// Camera and multi-capture WebRTC scripts
+let attendanceStream = null;
+let attendanceFacingMode = 'environment'; // environment for back camera (classrooms)
+let capturedImagesArray = [];
+let attendanceMode = 'local';
+
+window.setAttendanceMode = function(mode) {
+    attendanceMode = mode;
+    const localBtn = document.getElementById('btn-local-mode-attendance');
+    const cameraBtn = document.getElementById('btn-camera-mode-attendance');
+    const fileContainer = document.getElementById('file-input-container-attendance');
+    const cameraSection = document.getElementById('camera-section-attendance');
+    const fileInput = document.getElementById('group_photo');
+
+    if (mode === 'local') {
+        if (localBtn) {
+            localBtn.classList.remove('btn-outline-primary');
+            localBtn.classList.add('btn-primary');
+        }
+        if (cameraBtn) {
+            cameraBtn.classList.remove('btn-primary');
+            cameraBtn.classList.add('btn-outline-primary');
+        }
+        if (fileContainer) fileContainer.classList.remove('d-none');
+        if (cameraSection) cameraSection.classList.add('d-none');
+        if (fileInput) fileInput.required = true;
+        window.stopAttendanceCamera();
+    } else {
+        if (cameraBtn) {
+            cameraBtn.classList.remove('btn-outline-primary');
+            cameraBtn.classList.add('btn-primary');
+        }
+        if (localBtn) {
+            localBtn.classList.remove('btn-primary');
+            localBtn.classList.add('btn-outline-primary');
+        }
+        if (fileContainer) fileContainer.classList.add('d-none');
+        if (cameraSection) cameraSection.classList.remove('d-none');
+        if (fileInput) fileInput.required = false;
+        window.startAttendanceCamera();
+    }
+};
+
+window.startAttendanceCamera = async function() {
+    window.stopAttendanceCamera();
+    const video = document.getElementById('webcam-attendance');
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+                facingMode: { ideal: attendanceFacingMode }, 
+                width: { ideal: 1280 }, 
+                height: { ideal: 720 } 
+            },
+            audio: false
+        });
+        attendanceStream = stream;
+        if (video) video.srcObject = stream;
+    } catch (err) {
+        console.error("Camera access error:", err);
+        alert('Could not access camera: ' + err.message + '\nPlease check camera permissions or select "Local File(s)" mode.');
+        window.setAttendanceMode('local');
+    }
+};
+
+window.stopAttendanceCamera = function() {
+    if (attendanceStream) {
+        attendanceStream.getTracks().forEach(track => track.stop());
+        attendanceStream = null;
+    }
+    const video = document.getElementById('webcam-attendance');
+    if (video) video.srcObject = null;
+};
+
+window.toggleAttendanceCameraDirection = function() {
+    attendanceFacingMode = attendanceFacingMode === 'environment' ? 'user' : 'environment';
+    window.startAttendanceCamera();
+};
+
+window.captureAttendancePhoto = function() {
+    const video = document.getElementById('webcam-attendance');
+    const canvas = document.getElementById('canvas-attendance');
+    if (!video || !canvas || !attendanceStream) return;
+
+    const ctx = canvas.getContext('2d');
+    canvas.width = video.videoWidth || 1280;
+    canvas.height = video.videoHeight || 720;
+
+    // Draw video frame to canvas
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Convert canvas to jpeg data url
+    const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+    capturedImagesArray.push(dataURL);
+
+    // Update previews and hidden inputs
+    window.updateCapturedPreviews();
+};
+
+window.removeCapturedPhoto = function(index) {
+    capturedImagesArray.splice(index, 1);
+    window.updateCapturedPreviews();
+};
+
+window.updateCapturedPreviews = function() {
+    const grid = document.getElementById('captured-frames-grid');
+    const countSpan = document.getElementById('captured-count');
+    const inputsContainer = document.getElementById('hidden-inputs-container');
+    
+    if (!grid || !countSpan || !inputsContainer) return;
+    
+    grid.innerHTML = '';
+    inputsContainer.innerHTML = '';
+    countSpan.textContent = capturedImagesArray.length;
+
+    capturedImagesArray.forEach((base64Data, index) => {
+        const col = document.createElement('div');
+        col.className = 'col position-relative';
+        col.innerHTML = `
+            <div class="position-relative border rounded-2 overflow-hidden shadow-sm bg-white" style="padding-top: 75%;">
+                <img src="${base64Data}" class="position-absolute top-0 start-0 w-100 h-100" style="object-fit: cover;">
+                <button type="button" class="btn btn-danger btn-xs position-absolute top-0 end-0 m-1 rounded-circle p-0" 
+                        style="width: 20px; height: 20px; line-height: 20px; font-size: 10px; display: flex; align-items: center; justify-content: center; z-index: 10;"
+                        onclick="window.removeCapturedPhoto(${index})">
+                    &times;
+                </button>
+            </div>
+        `;
+        grid.appendChild(col);
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'captured_images_base64';
+        input.value = base64Data;
+        inputsContainer.appendChild(input);
+    });
+};
+
+window.validateAttendanceForm = function() {
+    if (attendanceMode === 'camera') {
+        if (capturedImagesArray.length === 0) {
+            alert('Please capture at least one camera photo before submitting.');
+            return false;
+        }
+        window.stopAttendanceCamera();
+    }
+    return true;
+};
 </script>
 {% endblock %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Update Photo - SmartVision{% endblock %}
+{% block page_title %}Update Face Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card p-4 shadow-sm border-0 fade-in">
+            <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-camera text-primary me-2"></i> Face Registration Self-Service</h5>
+            <p class="text-muted">Upload a high-quality photograph of yourself to update your registered face profile in the attendance matching database.</p>
+            
+            <div class="alert alert-warning mb-4" style="font-size: 0.9rem;">
+                <h6 class="fw-bold mb-1"><i class="fa-regular fa-lightbulb text-warning me-1"></i> Tips for a successful scan:</h6>
+                <ul class="mb-0 ps-3">
+                    <li>Ensure you are the only person in the photograph.</li>
+                    <li>Look directly at the camera with clear lighting.</li>
+                    <li>Avoid heavy hats, filters, or severe shadows over your eyes.</li>
+                </ul>
+            </div>
+
+            <!-- Current registered photo display if any -->
+            <div class="text-center my-4">
+                <label class="form-label fw-semibold d-block mb-3">Your Current Registered Photo:</label>
+                {% if student.image_filename %}
+                    <div class="scan-box-wrapper mx-auto shadow" style="width: 200px; height: 200px; border: 4px solid var(--border-card);">
+                        <div class="scan-laser-line"></div>
+                        <img src="{{ url_for('main.uploaded_face', filename=student.image_filename) }}" 
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                {% else %}
+                    <div class="rounded-3 mx-auto bg-light border d-flex align-items-center justify-content-center text-muted" 
+                          style="width: 200px; height: 200px; font-size: 3.5rem;">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <span class="text-danger fw-semibold d-block mt-2">No photo registered! You cannot be marked present in attendance scans.</span>
+                {% endif %}
+            </div>
+
+            <form method="POST" action="" enctype="multipart/form-data" class="mt-4" onsubmit="window.stopCamera('profile-photo')">
+                <input type="hidden" name="captured_image_base64" id="captured_image_base64-profile-photo">
+                
+                <!-- Toggle Selection Mode -->
+                <div class="d-flex gap-2 mb-3">
+                    <button type="button" class="btn btn-sm btn-primary w-50" id="btn-local-mode-profile-photo" onclick="setPhotoMode('profile-photo', 'local')">
+                        <i class="fa-solid fa-image me-1"></i> Upload File
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary w-50" id="btn-camera-mode-profile-photo" onclick="setPhotoMode('profile-photo', 'camera')">
+                        <i class="fa-solid fa-camera me-1"></i> Use Camera
+                    </button>
+                </div>
+
+                <!-- Local File Input -->
+                <div class="mb-4" id="file-input-container-profile-photo">
+                    <label for="file-input-profile-photo" class="form-label fw-semibold">Choose New Photo File</label>
+                    <input type="file" class="form-control" id="file-input-profile-photo" name="student_photo" accept="image/*" data-originally-required="true" required>
+                </div>
+
+                <!-- Camera Preview Section -->
+                <div class="camera-container d-none mb-4 text-center border p-2 rounded-3" id="camera-section-profile-photo" style="background: rgba(0,0,0,0.03);">
+                    <video id="webcam-profile-photo" autoplay playsinline style="width: 100%; max-height: 280px; border-radius: var(--radius-md); transform: scaleX(-1); background: #000;"></video>
+                    <canvas id="canvas-profile-photo" class="d-none"></canvas>
+                    
+                    <!-- Captured Photo Preview -->
+                    <div id="captured-preview-container-profile-photo" class="d-none mt-2 text-center">
+                        <img id="captured-preview-profile-photo" class="img-fluid rounded border border-primary shadow-sm" style="max-height: 240px;">
+                        <p class="text-success mt-1 fw-semibold mb-0" style="font-size: 0.85rem;"><i class="fa-solid fa-circle-check"></i> Photo Captured Successfully</p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-center gap-2 mt-3">
+                        <button type="button" class="btn btn-sm btn-primary" id="btn-capture-profile-photo" onclick="capturePhoto('profile-photo')"><i class="fa-solid fa-circle-dot"></i> Capture Frame</button>
+                        <button type="button" class="btn btn-sm btn-secondary d-none" id="btn-retake-profile-photo" onclick="retakePhoto('profile-photo')"><i class="fa-solid fa-rotate-left"></i> Retake</button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 py-2.5 shadow">
+                    Scan & Register New Photo
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

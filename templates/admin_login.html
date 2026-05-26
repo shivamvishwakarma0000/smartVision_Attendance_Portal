@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Sign In - SmartVision{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 h-100 d-flex align-items-stretch" 
+     style="background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%); overflow: hidden; height: 100vh;">
+    
+    <!-- Floating Theme Toggle -->
+    <div class="position-absolute" style="top: 20px; right: 20px; z-index: 2000;">
+        <button id="themeToggleLanding" class="btn btn-sm btn-link text-decoration-none p-2 border-0 rounded-circle shadow-sm" style="background-color: #ffffff; color: var(--text-secondary); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Toggle Dark/Light Mode">
+            <i class="fa-solid fa-moon"></i>
+        </button>
+    </div>
+    
+    <!-- Left Side: Brand Visual Grid (Visible on large screens) -->
+    <div class="col-lg-7 d-none d-lg-flex flex-column justify-content-center p-5 text-white position-relative" 
+         style="background-color: var(--sidebar-bg); background-image: radial-gradient(at 20% 20%, rgba(99, 102, 241, 0.25) 0px, transparent 40%), radial-gradient(at 80% 80%, rgba(236, 72, 153, 0.1) 0px, transparent 40%);">
+        
+        <div class="position-absolute d-flex align-items-center gap-2.5" style="top: 40px; left: 45px; z-index: 10;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SmartVision Logo" class="rounded border border-white-50 shadow-sm" style="width: 44px; height: 44px; object-fit: cover;">
+            <h4 class="fw-extrabold m-0" style="letter-spacing: -0.5px; background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800;">
+                SmartVision
+            </h4>
+        </div>
+
+        <div class="my-auto position-relative" style="z-index: 10; max-width: 580px; animation: slide-right 0.8s cubic-bezier(0.4, 0, 0.2, 1);">
+            <span class="fs-1 d-block mb-3 text-indigo-400" style="font-size: 3.5rem !important;"><i class="fa-solid fa-shield-halved"></i></span>
+            <h1 class="fw-extrabold display-4 mb-3" style="font-weight: 800; letter-spacing: -1.5px; line-height: 1.1;">
+                Administrator <span style="background: linear-gradient(135deg, #a5b4fc 0%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Access Portal</span>
+            </h1>
+            <p class="text-white-50 fs-5 mb-4" style="line-height: 1.6; font-weight: 400;">
+                Manage classes, registers, teacher schedules, view analytical reports and review student edit requests.
+            </p>
+        </div>
+
+        <div class="position-absolute" style="bottom: 40px; right: 40px; opacity: 0.15; z-index: 5;">
+            <svg width="220" height="220" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                <path d="M2 12h20"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Right Side: Centering Container -->
+    <div class="col-lg-5 col-12 d-flex flex-column justify-content-center align-items-center p-3 p-md-4 bg-light" 
+         style="min-height: 100vh; overflow-y: auto; background-color: var(--bg-main) !important;">
+        
+        <div class="card p-3 p-md-4 shadow-lg border-0 w-100 fade-in" 
+             style="max-width: 440px; background: var(--bg-card); backdrop-filter: blur(20px); border-radius: 20px; border: 1px solid var(--border-card); margin: auto;">
+            
+            <div class="text-center mb-4">
+                <span class="fs-2 d-block mb-1 text-primary"><i class="fa-solid fa-user-shield"></i></span>
+                <h4 class="fw-extrabold text-primary" style="font-weight: 800; font-size: 1.5rem;">Admin Sign In</h4>
+                <p class="text-muted fs-7 mb-0">Enter your administrator credentials to continue</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.admin_login') }}">
+                <!-- Email Input -->
+                <div class="mb-3">
+                    <label for="admin_email" class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Admin Email</label>
+                    <input type="email" class="form-control py-2" id="admin_email" name="email" placeholder="admin@smartvision.com" required style="font-size: 0.85rem;">
+                </div>
+                
+                <!-- Password Input -->
+                <div class="mb-4">
+                    <label for="admin_password" class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Password</label>
+                    <input type="password" class="form-control py-2" id="admin_password" name="password" placeholder="••••••••" required style="font-size: 0.85rem;">
+                </div>
+                
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary w-100 py-2.5 mb-2 shadow" style="font-size: 0.9rem;">
+                    Sign In as Admin
+                </button>
+            </form>
+
+            <div class="text-center mt-3 pt-2 border-top">
+                <a href="{{ url_for('main.index') }}" class="text-muted text-decoration-none fs-7">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Back to Student Portal
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes slide-right {
+    0% { transform: translateX(-30px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+body {
+    overflow: hidden !important;
+    height: 100vh !important;
+}
+</style>
+{% endblock %}

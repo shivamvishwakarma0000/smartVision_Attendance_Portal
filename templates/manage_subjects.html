@@ -1,111 +1,120 @@
 {% extends "base.html" %}
-{% block title %}Manage Subjects & Teachers{% endblock %}
+
+{% block title %}Manage Subjects & Teachers - SmartVision{% endblock %}
+{% block page_title %}Academic Curriculum & Faculty{% endblock %}
 
 {% block content %}
 <div class="row">
-    <!-- Form to Add a New Teacher -->
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>Add New Teacher</h4>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('add_teacher') }}">
-                    <div class="mb-3">
-                        <label for="teacher_name" class="form-label">Teacher Name</label>
-                        <input type="text" class="form-control" id="teacher_name" name="teacher_name" placeholder="e.g., Prof. Gupta" required>
-                    </div>
-                    <button type="submit" class="btn btn-secondary">Add Teacher</button>
-                </form>
-            </div>
+    <!-- Left Column: Teachers -->
+    <div class="col-lg-6 mb-4">
+        <!-- Add Teacher Form -->
+        <div class="card shadow-sm border-0 mb-4 p-4">
+            <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-chalkboard-user text-primary me-2"></i> Add New Teacher</h5>
+            <form method="POST" action="{{ url_for('main.add_teacher') }}">
+                <div class="mb-3">
+                    <label for="teacher_name" class="form-label fw-semibold">Teacher Name</label>
+                    <input type="text" class="form-control" id="teacher_name" name="teacher_name" placeholder="e.g. Dr. Sharma" required>
+                </div>
+                <button type="submit" class="btn btn-secondary w-100 py-2">
+                    Add Teacher
+                </button>
+            </form>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h4>Existing Teachers</h4>
-            </div>
-            <div class="card-body">
-                <ul class="list-group">
+        <!-- Teachers List -->
+        <div class="card shadow-sm border-0 p-4">
+            <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-list-check text-primary me-2"></i> Faculty List</h5>
+            <div style="max-height: 300px; overflow-y: auto;">
+                <ul class="list-group list-group-flush">
                     {% for teacher in teachers %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        {{ teacher.name }}
-                        <form action="{{ url_for('delete_teacher', teacher_id=teacher.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this teacher? This can only be done if they are not assigned to any subjects.');">
+                    <li class="list-group-item px-0 py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <div class="fw-semibold text-dark">{{ teacher.name }}</div>
+                        <form action="{{ url_for('main.delete_teacher', teacher_id=teacher.id) }}" 
+                              method="POST" 
+                              onsubmit="return confirm('Are you sure you want to delete this teacher? This can only be done if they are not assigned to any subjects.');">
                             <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                         </form>
                     </li>
                     {% else %}
-                    <li class="list-group-item text-center">No teachers added yet.</li>
+                    <li class="list-group-item text-center py-4 text-muted">No teachers added yet.</li>
                     {% endfor %}
                 </ul>
             </div>
         </div>
     </div>
 
-    <!-- Form to Add a New Subject and Table of Existing Subjects -->
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>Add New Subject</h4>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('manage_subjects') }}">
-                    <div class="mb-3">
-                        <label for="subject_name" class="form-label">Subject Name</label>
-                        <input type="text" class="form-control" id="subject_name" name="subject_name" placeholder="e.g., Computer Networks" required>
-                    </div>
+    <!-- Right Column: Subjects -->
+    <div class="col-lg-6 mb-4">
+        <!-- Add Subject Form -->
+        <div class="card shadow-sm border-0 mb-4 p-4">
+            <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-book-bookmark text-primary me-2"></i> Add New Subject</h5>
+            <form method="POST" action="{{ url_for('main.manage_subjects') }}">
+                <!-- Subject Name -->
+                <div class="mb-3">
+                    <label for="subject_name" class="form-label fw-semibold">Subject Name</label>
+                    <input type="text" class="form-control" id="subject_name" name="subject_name" placeholder="e.g. Computer Networks" required>
+                </div>
 
-                    <!-- THIS IS THE NEW DROPDOWN FOR CLASSES -->
-                    <div class="mb-3">
-                        <label for="class_id" class="form-label">Assign to Class</label>
+                <div class="row">
+                    <!-- Class Selection -->
+                    <div class="col-md-6 mb-3">
+                        <label for="class_id" class="form-label fw-semibold">Assign to Class</label>
                         <select class="form-select" id="class_id" name="class_id" required>
-                            <option selected disabled value="">Choose a class...</option>
+                            <option selected disabled value="">Choose Class...</option>
                             {% for class_item in classes %}
                             <option value="{{ class_item.id }}">{{ class_item.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="teacher_id" class="form-label">Assign Teacher</label>
+                    <!-- Teacher Selection -->
+                    <div class="col-md-6 mb-3">
+                        <label for="teacher_id" class="form-label fw-semibold">Assign Teacher</label>
                         <select class="form-select" id="teacher_id" name="teacher_id" required>
-                            <option selected disabled value="">Choose from existing teachers...</option>
+                            <option selected disabled value="">Choose Faculty...</option>
                             {% for teacher in teachers %}
                             <option value="{{ teacher.id }}">{{ teacher.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary">Add Subject</button>
-                </form>
-            </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm">
+                    Add Subject
+                </button>
+            </form>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h4>Existing Subjects</h4>
-            </div>
-            <div class="card-body">
-                <table class="table table-striped">
+        <!-- Subjects List -->
+        <div class="card shadow-sm border-0 p-4">
+            <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-book-open text-primary me-2"></i> Active Subject Registers</h5>
+            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                <table class="table table-striped table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>Subject Name</th>
-                            <th>Assigned Teacher</th>
-                            <th>Action</th>
+                            <th>Subject</th>
+                            <th>Class</th>
+                            <th>Teacher</th>
+                            <th class="text-end">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for subject in subjects %}
                         <tr>
-                            <td>{{ subject.name }}</td>
-                            <td>{{ subject.teacher.name }}</td>
-                            <td>
-                                <form action="{{ url_for('delete_subject', subject_id=subject.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this subject?');">
+                            <td class="fw-bold">{{ subject.name }}</td>
+                            <td>{{ subject.class_assigned.name if subject.class_assigned else 'No Class' }}</td>
+                            <td>{{ subject.teacher.name if subject.teacher else 'No Teacher' }}</td>
+                            <td class="text-end">
+                                <form action="{{ url_for('main.delete_subject', subject_id=subject.id) }}" 
+                                      method="POST" 
+                                      onsubmit="return confirm('Are you sure you want to delete this subject?');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                                 </form>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="3" class="text-center">No subjects added yet.</td>
+                            <td colspan="4" class="text-center text-muted py-4">No subjects added yet.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -114,7 +123,4 @@
         </div>
     </div>
 </div>
-
-
-
 {% endblock %}

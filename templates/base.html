@@ -4,69 +4,274 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}SmartVision{% endblock %}</title>
+    <!-- Plus Jakarta Sans Fonts & Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script>
+        // Apply theme immediately to prevent flashing
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <style>
+        .fullscreen-content {
+            margin-left: 0 !important;
+            padding: 0 !important;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+    </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div>
-            <h3 class="sidebar-header">SmartVision</h3>
-            <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a>
-            <a href="{{ url_for('register_student') }}" class="nav-link {% if request.endpoint == 'register_student' %}active{% endif %}">Register Student</a>
-            <a href="{{ url_for('take_attendance') }}" class="nav-link {% if request.endpoint == 'take_attendance' %}active{% endif %}">Take Attendance</a>
-            <a href="{{ url_for('view_reports') }}" class="nav-link {% if request.endpoint == 'view_reports' %}active{% endif %}">All Students</a>
-            <a href="{{ url_for('manage_subjects') }}" class="nav-link {% if request.endpoint == 'manage_subjects' %}active{% endif %}">Manage Subjects</a>
-            <a href="{{ url_for('manage_classes') }}" class="nav-link {% if request.endpoint == 'manage_classes' %}active{% endif %}">Manage Classes</a>
-            <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+    {% if current_user.is_authenticated %}
+        <!-- Sidebar Navigation (Only for Logged In users) -->
+        <div class="sidebar" id="sidebar">
+            <div>
+                <h3 class="sidebar-header d-flex align-items-center gap-2.5">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="rounded" style="width: 36px; height: 36px; object-fit: cover; border: 1.5px solid rgba(255, 255, 255, 0.15);">
+                    SmartVision
+                </h3>
+                
+                {% if current_user.role == 'admin' %}
+                    <!-- Admin Navigation -->
+                    <a href="{{ url_for('main.dashboard') }}" class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                        <i class="fa-solid fa-chart-simple me-2"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('main.register_student') }}" class="nav-link {% if request.endpoint == 'main.register_student' %}active{% endif %}">
+                        <i class="fa-solid fa-user-plus me-2"></i> Register Student
+                    </a>
+                    <a href="{{ url_for('main.take_attendance') }}" class="nav-link {% if request.endpoint == 'main.take_attendance' %}active{% endif %}">
+                        <i class="fa-solid fa-camera me-2"></i> Take Attendance
+                    </a>
+                    <a href="{{ url_for('main.view_reports') }}" class="nav-link {% if request.endpoint == 'main.view_reports' %}active{% endif %}">
+                        <i class="fa-solid fa-users me-2"></i> Enrolled Students
+                    </a>
+                    <a href="{{ url_for('main.retention_risk_report') }}" class="nav-link {% if request.endpoint == 'main.retention_risk_report' %}active{% endif %}">
+                        <i class="fa-solid fa-triangle-exclamation me-2 text-warning"></i> Retention Warning
+                    </a>
+                    <a href="{{ url_for('main.manage_subjects') }}" class="nav-link {% if request.endpoint == 'main.manage_subjects' %}active{% endif %}">
+                        <i class="fa-solid fa-book me-2"></i> Manage Subjects
+                    </a>
+                    <a href="{{ url_for('main.manage_classes') }}" class="nav-link {% if request.endpoint == 'main.manage_classes' %}active{% endif %}">
+                        <i class="fa-solid fa-school me-2"></i> Manage Classes
+                    </a>
+                    <a href="{{ url_for('main.approvals') }}" class="nav-link {% if request.endpoint == 'main.approvals' %}active{% endif %} d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-user-shield me-2"></i> Approvals</span>
+                        {% if pending_approvals_count > 0 %}
+                            <span class="badge bg-danger rounded-pill px-2 py-1" style="font-size: 0.75rem; min-width: 22px;">{{ pending_approvals_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('main.assign_students') }}" class="nav-link {% if request.endpoint == 'main.assign_students' %}active{% endif %} d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-people-arrows me-2"></i> Assign Classes</span>
+                        {% if unclassified_students_count > 0 %}
+                            <span class="badge bg-warning text-dark rounded-pill px-2 py-1" style="font-size: 0.75rem; min-width: 22px;">{{ unclassified_students_count }}</span>
+                        {% endif %}
+                    </a>
+                {% elif current_user.role == 'student' %}
+                    <!-- Student Navigation -->
+                    <a href="{{ url_for('student.dashboard') }}" class="nav-link {% if request.endpoint == 'student.dashboard' %}active{% endif %}">
+                        <i class="fa-solid fa-chart-line me-2"></i> My Dashboard
+                    </a>
+                    <a href="{{ url_for('student.edit_profile') }}" class="nav-link {% if request.endpoint == 'student.edit_profile' %}active{% endif %}">
+                        <i class="fa-solid fa-user-pen me-2"></i> Edit Profile
+                    </a>
+                {% endif %}
+                
+                <a href="{{ url_for('auth.logout') }}" class="nav-link mt-4 text-warning">
+                    <i class="fa-solid fa-right-from-bracket me-2 text-warning"></i> Logout
+                </a>
+            </div>
+            <div class="sidebar-footer">
+                <p>SmartVision Portal <i class="fa-solid fa-laptop-code text-indigo-400"></i></p>
+            </div>
         </div>
-        <div class="sidebar-footer">
-            <p>Powered by Shivam 🚀</p>
-        </div>
-    </div>
 
-    <!-- Main Content Area -->
-    <div class="main-content" id="main-content">
-        <div class="top-bar">
-            <!-- Hamburger Button (only visible on small screens) -->
-            <button class="sidebar-toggle" id="sidebarToggle">
-                &#9776; <!-- Hamburger Icon -->
-            </button>
-            <!-- Welcome message will take remaining space -->
-            <h5 class="ms-2">Welcome, {{ current_user.name }}!</h5>
-        </div>
+        <!-- Mobile Navigation Overlay -->
+        <div class="overlay" id="overlay"></div>
+    {% endif %}
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <!-- Content Area wrapper: conditional fullscreen style -->
+    <div class="{% if current_user.is_authenticated %}main-content{% else %}fullscreen-content{% endif %}" id="main-content">
+        {% if current_user.is_authenticated %}
+            <!-- Topbar (Only for Logged In users) -->
+            <div class="top-bar">
+                <div class="d-flex align-items-center">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        &#9776;
+                    </button>
+                    <h5>{% block page_title %}{% endblock %}</h5>
                 </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+                
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Theme Toggle Button -->
+                    <button id="themeToggle" class="btn btn-link text-decoration-none p-2 border-0" style="color: var(--text-secondary); font-size: 1.2rem; cursor: pointer; transition: transform 0.2s;" title="Toggle Dark/Light Mode">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    
+                    <div class="user-greeting d-none d-sm-block">
+                        <span class="text-muted">Role: <strong class="text-primary" style="text-transform: capitalize;">{{ current_user.role }}</strong> |</span>
+                        Welcome, <strong>{{ current_user.name }}</strong>!
+                    </div>
+                </div>
+            </div>
+        {% endif %}
 
-        {% block content %}{% endblock %}
+        <!-- Flash messages -->
+        <div class="container-fluid px-0 {% if not current_user.is_authenticated %}p-3 position-absolute start-50 translate-middle-x{% endif %}" style="{% if not current_user.is_authenticated %}z-index: 2000; max-width: 500px; top: 20px;{% endif %}">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    {% if message and message.strip() %}
+                    <div class="alert alert-{{ category if category != 'danger' else 'danger' }} alert-dismissible fade show var-alert rounded-3 shadow-sm border-0 fade-in" role="alert" style="border-left: 4px solid {% if category == 'success' %}var(--success){% elif category == 'danger' %}var(--danger){% else %}var(--primary){% endif %} !important; margin-bottom: 10px;">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Content Block -->
+        <div class="fade-in {% if not current_user.is_authenticated %}h-100{% endif %}">
+            {% block content %}{% endblock %}
+        </div>
     </div>
-
-    <!-- Overlay for mobile (optional) -->
-    <div class="overlay" id="overlay"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JavaScript for Sidebar Toggle -->
+    <!-- Global WebRTC Camera Capture Scripts -->
+    <script>
+        let streams = {};
+
+        window.setPhotoMode = function(id, mode) {
+            const localModeBtn = document.getElementById('btn-local-mode-' + id);
+            const cameraModeBtn = document.getElementById('btn-camera-mode-' + id);
+            const fileInputContainer = document.getElementById('file-input-container-' + id);
+            const fileInput = document.getElementById('file-input-' + id);
+            const cameraSection = document.getElementById('camera-section-' + id);
+            const hiddenInput = document.getElementById('captured_image_base64-' + id);
+
+            if (mode === 'local') {
+                if (localModeBtn) {
+                    localModeBtn.classList.remove('btn-outline-primary');
+                    localModeBtn.classList.add('btn-primary');
+                }
+                if (cameraModeBtn) {
+                    cameraModeBtn.classList.remove('btn-primary');
+                    cameraModeBtn.classList.add('btn-outline-primary');
+                }
+                if (fileInputContainer) fileInputContainer.style.display = 'block';
+                if (fileInput && fileInput.getAttribute('data-originally-required') === 'true') {
+                    fileInput.required = true;
+                }
+                if (cameraSection) cameraSection.classList.add('d-none');
+                window.stopCamera(id);
+                if (hiddenInput) hiddenInput.value = '';
+            } else {
+                if (cameraModeBtn) {
+                    cameraModeBtn.classList.remove('btn-outline-primary');
+                    cameraModeBtn.classList.add('btn-primary');
+                }
+                if (localModeBtn) {
+                    localModeBtn.classList.remove('btn-primary');
+                    localModeBtn.classList.add('btn-outline-primary');
+                }
+                if (fileInputContainer) fileInputContainer.style.display = 'none';
+                if (fileInput) fileInput.required = false;
+                if (cameraSection) cameraSection.classList.remove('d-none');
+                window.startCamera(id);
+            }
+        };
+
+        window.startCamera = async function(id) {
+            const video = document.getElementById('webcam-' + id);
+            const previewContainer = document.getElementById('captured-preview-container-' + id);
+            const captureBtn = document.getElementById('btn-capture-' + id);
+            const retakeBtn = document.getElementById('btn-retake-' + id);
+            
+            if (previewContainer) previewContainer.classList.add('d-none');
+            if (video) video.classList.remove('d-none');
+            if (captureBtn) captureBtn.classList.remove('d-none');
+            if (retakeBtn) retakeBtn.classList.add('d-none');
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+                    audio: false
+                });
+                streams[id] = stream;
+                if (video) video.srcObject = stream;
+            } catch (err) {
+                alert('Could not access camera: ' + err.message + '\nPlease check camera permissions or select a local photo file.');
+                window.setPhotoMode(id, 'local');
+            }
+        };
+
+        window.capturePhoto = function(id) {
+            const video = document.getElementById('webcam-' + id);
+            const canvas = document.getElementById('canvas-' + id);
+            const preview = document.getElementById('captured-preview-' + id);
+            const previewContainer = document.getElementById('captured-preview-container-' + id);
+            const hiddenInput = document.getElementById('captured_image_base64-' + id);
+            const captureBtn = document.getElementById('btn-capture-' + id);
+            const retakeBtn = document.getElementById('btn-retake-' + id);
+
+            if (!streams[id] || !video || !canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            
+            // Mirror image when drawing front camera
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+            if (hiddenInput) hiddenInput.value = dataURL;
+
+            if (preview) preview.src = dataURL;
+            if (previewContainer) previewContainer.classList.remove('d-none');
+            video.classList.add('d-none');
+            
+            if (captureBtn) captureBtn.classList.add('d-none');
+            if (retakeBtn) retakeBtn.classList.remove('d-none');
+
+            window.stopCamera(id);
+        };
+
+        window.retakePhoto = function(id) {
+            const hiddenInput = document.getElementById('captured_image_base64-' + id);
+            if (hiddenInput) hiddenInput.value = '';
+            window.startCamera(id);
+        };
+
+        window.stopCamera = function(id) {
+            if (streams[id]) {
+                streams[id].getTracks().forEach(track => track.stop());
+                delete streams[id];
+            }
+            const video = document.getElementById('webcam-' + id);
+            if (video) video.srcObject = null;
+        };
+    </script>
+
+    <!-- Theme and Sidebar Scripts -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar Navigation Overlay (Logged In only)
             const sidebar = document.getElementById('sidebar');
             const toggleButton = document.getElementById('sidebarToggle');
             const overlay = document.getElementById('overlay');
-            const mainContent = document.getElementById('main-content'); // Main content area
 
             function toggleSidebar() {
-                sidebar.classList.toggle('active');
-                overlay.classList.toggle('active');
+                if (sidebar) sidebar.classList.toggle('active');
+                if (overlay) overlay.classList.toggle('active');
             }
 
             if (toggleButton) {
@@ -74,9 +279,43 @@
             }
 
             if (overlay) {
-                // Close sidebar if overlay is clicked
                 overlay.addEventListener('click', toggleSidebar);
             }
+
+            // Global Light/Dark Theme Toggler
+            const themeToggleBtn = document.getElementById('themeToggle');
+            const themeToggleLandingBtn = document.getElementById('themeToggleLanding');
+            
+            function toggleTheme() {
+                const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                updateToggleIcons(newTheme);
+            }
+            
+            function updateToggleIcons(theme) {
+                const iconClass = theme === 'dark' ? 'fa-sun' : 'fa-moon';
+                if (themeToggleBtn) {
+                    themeToggleBtn.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+                }
+                if (themeToggleLandingBtn) {
+                    themeToggleLandingBtn.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+                }
+            }
+            
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', toggleTheme);
+            }
+            if (themeToggleLandingBtn) {
+                themeToggleLandingBtn.addEventListener('click', toggleTheme);
+            }
+            
+            // Set initial toggle icons
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            updateToggleIcons(currentTheme);
         });
     </script>
 </body>

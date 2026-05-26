@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Pending Approvals - SmartVision{% endblock %}
+{% block page_title %}Profile Change Approvals{% endblock %}
+
+{% block content %}
+<div class="card p-4 shadow-sm border-0 mb-4 fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold text-dark mb-0"><i class="fa-solid fa-user-shield me-2 text-primary"></i> Student Change Requests Queue</h4>
+        <span class="badge badge-attendance badge-present py-2 px-3 fs-7">
+            {{ requests|length }} Pending Reviews
+        </span>
+    </div>
+    <p class="text-muted">Review student-submitted profile updates below. Compare changes side-by-side, verify new face registration photos, and approve/reject updates instantly.</p>
+</div>
+
+{% for req in requests %}
+<div class="card p-4 shadow-sm border-0 mb-4 fade-in">
+    <div class="border-bottom pb-3 mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="fw-bold text-primary mb-1">Request #{{ req.id }} | {{ req.student.name }}</h5>
+            <span class="text-muted fs-8">Submitted on {{ req.created_at.strftime('%B %d, %Y at %H:%M') }}</span>
+        </div>
+        <div class="d-flex gap-2">
+            <!-- Approve Button Form -->
+            <form action="{{ url_for('main.handle_approval', request_id=req.id, action='approve') }}" method="POST">
+                <button type="submit" class="btn btn-success px-4 fw-bold shadow-sm">Approve</button>
+            </form>
+            
+            <!-- Reject Button Form -->
+            <form action="{{ url_for('main.handle_approval', request_id=req.id, action='reject') }}" method="POST" onsubmit="return confirm('Are you sure you want to reject and discard this profile change request?');">
+                <button type="submit" class="btn btn-outline-danger px-4">Reject</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Current Profile -->
+        <div class="col-md-6 mb-4">
+            <div class="p-3 rounded border bg-light h-100">
+                <h6 class="fw-bold text-muted mb-3 uppercase tracking-wider fs-8 text-uppercase"><i class="fa-solid fa-circle-xmark text-danger me-1"></i> Current Profile Details</h6>
+                
+                <div class="mb-2">
+                    <span class="text-muted fs-8">Full Name:</span>
+                    <div class="fw-semibold text-dark">{{ req.student.name }}</div>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted fs-8">Class Level:</span>
+                    <div class="fw-semibold text-dark">{{ req.student.class_assigned.name }}</div>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted fs-8">Roll Number:</span>
+                    <div class="fw-semibold text-dark">{{ req.student.roll_no }}</div>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted fs-8">Enrollment Number:</span>
+                    <div class="fw-semibold text-dark">{{ req.student.enrollment_no }}</div>
+                </div>
+                
+                <!-- Current photo display -->
+                <div class="mt-4 text-center">
+                    <span class="text-muted fs-8 d-block mb-2">Registered Face Photo:</span>
+                    {% if req.student.image_filename %}
+                        <img src="{{ url_for('main.uploaded_face', filename=req.student.image_filename) }}" 
+                             class="rounded shadow-sm border border-2" 
+                             style="width: 130px; height: 130px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded bg-white border d-flex align-items-center justify-content-center mx-auto text-muted" style="width: 130px; height: 130px; font-size: 2.5rem;">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Requested Changes -->
+        <div class="col-md-6 mb-4">
+            <div class="p-3 rounded border h-100" style="background-color: rgba(99, 102, 241, 0.02); border-color: rgba(99, 102, 241, 0.2) !important;">
+                <h6 class="fw-bold text-primary mb-3 uppercase tracking-wider fs-8 text-uppercase"><i class="fa-solid fa-circle-check text-success me-1"></i> Requested Changes</h6>
+                
+                <div class="mb-2">
+                    <span class="text-muted fs-8">Requested Name:</span>
+                    <div class="fw-bold {% if req.new_name != req.student.name %}text-success{% else %}text-dark{% endif %}">
+                        {{ req.new_name }}
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted fs-8">Requested Class Level:</span>
+                    <div class="fw-bold {% if req.new_class_id != req.student.class_id %}text-success{% else %}text-dark{% endif %}">
+                        {{ req.class_assigned.name if req.class_assigned else 'No Class' }}
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted fs-8">Requested Roll Number:</span>
+                    <div class="fw-bold {% if req.new_roll_no != req.student.roll_no %}text-success{% else %}text-dark{% endif %}">
+                        {{ req.new_roll_no }}
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted fs-8">Requested Enrollment:</span>
+                    <div class="fw-bold {% if req.new_enrollment_no != req.student.enrollment_no %}text-success{% else %}text-dark{% endif %}">
+                        {{ req.new_enrollment_no }}
+                    </div>
+                </div>
+                
+                <!-- Requested Photo display -->
+                <div class="mt-4 text-center">
+                    <span class="text-muted fs-8 d-block mb-2">Requested Face Photo:</span>
+                    {% if req.new_image_filename %}
+                        <div class="scan-box-wrapper mx-auto shadow-sm border border-2 {% if req.new_image_filename != req.student.image_filename %}border-success{% endif %}" style="width: 130px; height: 130px;">
+                            {% if req.new_image_filename != req.student.image_filename %}
+                                <div class="scan-laser-line" style="animation-duration: 2s;"></div>
+                            {% endif %}
+                            <img src="{{ url_for('main.uploaded_face', filename=req.new_image_filename) }}" 
+                                 style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    {% else %}
+                        <div class="rounded bg-white border d-flex align-items-center justify-content-center mx-auto text-muted" style="width: 130px; height: 130px; font-size: 2.5rem;">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <span class="fs-1 text-success"><i class="fa-solid fa-circle-check"></i></span>
+    <h5 class="text-muted mt-3 mb-0">No pending profile change requests in queue. You are all caught up!</h5>
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,41 +1,92 @@
 {% extends "base.html" %}
 
-{% block title %}Register Student{% endblock %}
+{% block title %}Register Student - SmartVision{% endblock %}
+{% block page_title %}Enroll Student & Register Face{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h4>Register New Student</h4>
-    </div>
-    <div class="card-body">
-        <form method="POST" action="" enctype="multipart/form-data">
-            <div class="mb-3">
-                <label for="class_id" class="form-label">Assign to Class</label>
-                <select class="form-select" id="class_id" name="class_id" required>
-                    <option selected disabled value="">Choose a class...</option>
-                    {% for class_item in classes %}
-                    <option value="{{ class_item.id }}">{{ class_item.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="name" class="form-label">Full Name</label>
-                <input type="text" class="form-control" id="name" name="name" required>
-            </div>
-            <div class="mb-3">
-                <label for="roll_no" class="form-label">Roll Number</label>
-                <input type="text" class="form-control" id="roll_no" name="roll_no" required>
-            </div>
-            <div class="mb-3">
-                <label for="enrollment_no" class="form-label">Enrollment Number</label>
-                <input type="text" class="form-control" id="enrollment_no" name="enrollment_no" required>
-            </div>
-            <div class="mb-3">
-                <label for="student_photo" class="form-label">Student Photo (Clear, single face)</label>
-                <input type="file" class="form-control" id="student_photo" name="student_photo" accept="image/*" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Register Student</button>
-        </form>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4 shadow-sm border-0 fade-in">
+            <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-user-plus text-primary me-2"></i> Student Face Profile Registration</h5>
+            <p class="text-muted">Register a new student and upload their facial recognition image. This encoding is processed to match faces detected in group classroom photos.</p>
+            
+            <form method="POST" action="" enctype="multipart/form-data" class="mt-4" onsubmit="window.stopCamera('register-student')">
+                <!-- Class Selection -->
+                <div class="mb-3">
+                    <label for="class_id" class="form-label fw-semibold">Assign to Class Register</label>
+                    <select class="form-select" id="class_id" name="class_id" required>
+                        <option selected disabled value="">Choose a class...</option>
+                        {% for class_item in classes %}
+                        <option value="{{ class_item.id }}">{{ class_item.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Basic details -->
+                <div class="mb-3">
+                    <label for="name" class="form-label fw-semibold">Full Name</label>
+                    <input type="text" class="form-control" id="name" name="name" placeholder="John Doe" required>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="roll_no" class="form-label fw-semibold">Roll Number</label>
+                        <input type="text" class="form-control" id="roll_no" name="roll_no" placeholder="e.g. CS2026-042" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="enrollment_no" class="form-label fw-semibold">Enrollment Number</label>
+                        <input type="text" class="form-control" id="enrollment_no" name="enrollment_no" placeholder="e.g. EN123456789" required>
+                    </div>
+                </div>
+
+                <!-- Photo Upload -->
+                <div class="mb-4 p-3 rounded bg-light" style="border: 1px dashed rgba(99, 102, 241, 0.25);">
+                    <label class="form-label fw-semibold text-danger mb-2">Face Registration Photo (Clear, single face only)</label>
+                    
+                    <input type="hidden" name="captured_image_base64" id="captured_image_base64-register-student">
+                    
+                    <!-- Toggle Selection Mode -->
+                    <div class="d-flex gap-2 mb-3">
+                        <button type="button" class="btn btn-sm btn-primary w-50" id="btn-local-mode-register-student" onclick="setPhotoMode('register-student', 'local')">
+                            <i class="fa-solid fa-image me-1"></i> Upload File
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary w-50" id="btn-camera-mode-register-student" onclick="setPhotoMode('register-student', 'camera')">
+                            <i class="fa-solid fa-camera me-1"></i> Use Camera
+                        </button>
+                    </div>
+
+                    <!-- Local File Input -->
+                    <div class="mb-3" id="file-input-container-register-student">
+                        <input type="file" class="form-control" id="file-input-register-student" name="student_photo" accept="image/*" data-originally-required="true" required>
+                    </div>
+
+                    <!-- Camera Preview Section -->
+                    <div class="camera-container d-none mb-3 text-center border p-2 rounded-3" id="camera-section-register-student" style="background: rgba(0,0,0,0.03);">
+                        <video id="webcam-register-student" autoplay playsinline style="width: 100%; max-height: 240px; border-radius: var(--radius-md); transform: scaleX(-1); background: #000;"></video>
+                        <canvas id="canvas-register-student" class="d-none"></canvas>
+                        
+                        <!-- Captured Photo Preview -->
+                        <div id="captured-preview-container-register-student" class="d-none mt-2 text-center">
+                            <img id="captured-preview-register-student" class="img-fluid rounded border border-primary shadow-sm" style="max-height: 200px;">
+                            <p class="text-success mt-1 fw-semibold mb-0" style="font-size: 0.85rem;"><i class="fa-solid fa-circle-check"></i> Photo Captured Successfully</p>
+                        </div>
+                        
+                        <div class="d-flex justify-content-center gap-2 mt-2">
+                            <button type="button" class="btn btn-sm btn-primary" id="btn-capture-register-student" onclick="capturePhoto('register-student')"><i class="fa-solid fa-circle-dot"></i> Capture Frame</button>
+                            <button type="button" class="btn btn-sm btn-secondary d-none" id="btn-retake-register-student" onclick="retakePhoto('register-student')"><i class="fa-solid fa-rotate-left"></i> Retake</button>
+                        </div>
+                    </div>
+
+                    <div class="form-text text-muted mt-2">
+                        <strong class="text-dark"><i class="fa-regular fa-lightbulb text-warning me-1"></i> Face Requirements:</strong> Keep the face clear of sunglasses, filters, other faces, or deep shadows. Our system runs a facial encoding scan to map the face profile instantly.
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2.5 shadow">
+                    Register Face & Student Details
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

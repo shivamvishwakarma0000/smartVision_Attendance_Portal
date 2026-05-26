@@ -1,0 +1,39 @@
+# Use a python slim base image
+FROM python:3.10-slim-bullseye
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    DEBIAN_FRONTEND=noninteractive
+
+# Set work directory
+WORKDIR /app
+
+# Install system dependencies required for CMake, Dlib, and OpenCV
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    cmake \
+    gfortran \
+    libopenblas-dev \
+    liblapack-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install python dependencies
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Copy project files
+COPY . /app/
+
+# Expose port (Render sets PORT environment variable dynamically)
+EXPOSE 10000
+
+# Start app using Gunicorn with multi-threading to prevent locks during face scans
+CMD ["gunicorn", "--bind", "0.0.0.0:10000", "app:app", "--threads", "4", "--workers", "1", "--timeout", "120"]

@@ -6,3 +6,5 @@ face-recognition
 numpy
 werkzeug
 gunicorn
+authlib
+requests

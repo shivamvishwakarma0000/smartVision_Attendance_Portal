@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Retention Risk Report - SmartVision{% endblock %}
+{% block page_title %}Retention Risk Analytics{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card shadow-sm border-0 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    <h5 class="fw-bold text-danger mb-1"><i class="fa-solid fa-triangle-exclamation text-danger me-2"></i> Long-Term Retention Risk Register</h5>
+                    <p class="text-muted fs-7 mb-0">Identifying active students who have registered **ZERO attendance records** over the last 5 days (between **{{ report_start_date }}** and **{{ report_end_date }}**).</p>
+                </div>
+                {% if total_risk_students > 0 %}
+                <a href="{{ url_for('main.download_risk_report') }}" class="btn btn-danger btn-sm shadow-sm py-2 px-3 fw-semibold">
+                    <i class="fa-solid fa-file-csv me-1"></i> Download Report (CSV)
+                </a>
+                {% endif %}
+            </div>
+            
+            {% if total_risk_students > 0 %}
+                <div class="alert alert-warning border-0 rounded-3 py-2 px-3 mb-4 fs-7" style="background-color: var(--warning-bg); color: var(--warning);">
+                    <i class="fa-solid fa-circle-exclamation me-1"></i> <strong>High Alert:</strong> We flagged <strong>{{ total_risk_students }}</strong> student(s) with continuous absence for more than 5 days.
+                </div>
+                
+                <div class="table-responsive border rounded-3">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light text-secondary">
+                            <tr>
+                                <th class="py-3 px-3">#</th>
+                                <th class="py-3">Student Name</th>
+                                <th class="py-3">Roll Number</th>
+                                <th class="py-3">Assigned Class</th>
+                                <th class="py-3">Enrollment Number</th>
+                                <th class="py-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in risk_students_data %}
+                            <tr>
+                                <td class="py-3 px-3 fw-semibold">{{ loop.index }}</td>
+                                <td class="py-3 text-dark fw-bold">{{ item.student.name }}</td>
+                                <td class="py-3">{{ item.student.roll_no }}</td>
+                                <td class="py-3 fw-semibold">{{ item.class_name }}</td>
+                                <td class="py-3 text-muted">{{ item.student.enrollment_no }}</td>
+                                <td class="py-3">
+                                    <span class="badge badge-attendance badge-absent py-2 px-3">
+                                        5+ Days Absent
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <span class="fs-1 text-success"><i class="fa-solid fa-circle-check"></i></span>
+                    <h5 class="fw-bold text-success mt-3 mb-1">Excellent Student Standing!</h5>
+                    <p class="text-muted fs-7 mb-0">All of your enrolled students have registered at least one attendance matching within the last 5 days.</p>
+                </div>
+            {% endif %}
+            
+            <div class="mt-4 pt-3 border-top">
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary btn-sm py-2 px-3">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

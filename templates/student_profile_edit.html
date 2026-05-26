@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile - SmartVision{% endblock %}
+{% block page_title %}Edit Profile Information{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4 shadow-sm border-0 fade-in">
+            <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-user-pen text-primary me-2"></i> Profile Change Request</h5>
+            <p class="text-muted">Modify your details below. To ensure academic integrity, profile alterations (such as class changes or face updates) must be reviewed and approved by a portal administrator before taking effect.</p>
+
+            {% if pending_request %}
+            <!-- Pending Alert Box -->
+            <div class="alert alert-warning border-0 shadow-sm rounded-3 py-3 mb-4" style="background-color: var(--warning-bg); color: var(--warning);">
+                <h6 class="fw-bold mb-1"><i class="fa-solid fa-hourglass-half text-warning me-2"></i> Request Pending Review</h6>
+                You currently have a profile change request submitted on <strong>{{ pending_request.created_at.strftime('%B %d, %Y at %H:%M') }}</strong> pending administrator approval. You cannot submit new changes until this request is processed.
+            </div>
+
+            <!-- View Pending Details (ReadOnly) -->
+            <fieldset disabled>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Requested Full Name</label>
+                        <input type="text" class="form-control" value="{{ pending_request.new_name }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Requested Class</label>
+                        <input type="text" class="form-control" value="{{ pending_request.class_assigned.name if pending_request.class_assigned else 'No Class' }}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Requested Roll Number</label>
+                        <input type="text" class="form-control" value="{{ pending_request.new_roll_no }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Requested Enrollment Number</label>
+                        <input type="text" class="form-control" value="{{ pending_request.new_enrollment_no }}">
+                    </div>
+                </div>
+                
+                {% if pending_request.new_image_filename != student.image_filename %}
+                <div class="text-center my-4">
+                    <label class="form-label fw-semibold d-block">Requested New Face Profile Photo:</label>
+                    <div class="scan-box-wrapper mx-auto shadow" style="width: 160px; height: 160px; border: 4px solid var(--border-card);">
+                        <div class="scan-laser-line"></div>
+                        <img src="{{ url_for('main.uploaded_face', filename=pending_request.new_image_filename) }}" 
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                </div>
+                {% endif %}
+            </fieldset>
+            
+            <a href="{{ url_for('student.dashboard') }}" class="btn btn-secondary w-100 mt-4">
+                Back to Dashboard
+            </a>
+            {% else %}
+            <!-- Editing Form -->
+            <form method="POST" action="" enctype="multipart/form-data" class="mt-4" onsubmit="window.stopCamera('edit-profile')">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="name" class="form-label fw-semibold">Full Name</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ student.name }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="class_id" class="form-label fw-semibold">Class Assigned</label>
+                        <select class="form-select" id="class_id" name="class_id" required>
+                            {% for class_item in classes %}
+                            <option value="{{ class_item.id }}" {% if class_item.id == student.class_id %}selected{% endif %}>{{ class_item.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="roll_no" class="form-label fw-semibold">Roll Number</label>
+                        <input type="text" class="form-control" id="roll_no" name="roll_no" value="{{ student.roll_no }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="enrollment_no" class="form-label fw-semibold">Enrollment Number</label>
+                        <input type="text" class="form-control" id="enrollment_no" name="enrollment_no" value="{{ student.enrollment_no }}" required>
+                    </div>
+                </div>
+
+                <!-- Photo Update (Optional) -->
+                <div class="mb-4 mt-3 p-3 rounded bg-light" style="border: 1px dashed rgba(99, 102, 241, 0.25);">
+                    <label class="form-label fw-semibold mb-2">Update Face Photo (Optional - leave blank to keep current photo)</label>
+                    
+                    <input type="hidden" name="captured_image_base64" id="captured_image_base64-edit-profile">
+                    
+                    <!-- Toggle Selection Mode -->
+                    <div class="d-flex gap-2 mb-3">
+                        <button type="button" class="btn btn-sm btn-primary w-50" id="btn-local-mode-edit-profile" onclick="setPhotoMode('edit-profile', 'local')">
+                            <i class="fa-solid fa-image me-1"></i> Upload File
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary w-50" id="btn-camera-mode-edit-profile" onclick="setPhotoMode('edit-profile', 'camera')">
+                            <i class="fa-solid fa-camera me-1"></i> Use Camera
+                        </button>
+                    </div>
+
+                    <!-- Local File Input -->
+                    <div class="mb-3" id="file-input-container-edit-profile">
+                        <input type="file" class="form-control" id="file-input-edit-profile" name="student_photo" accept="image/*" data-originally-required="false">
+                    </div>
+
+                    <!-- Camera Preview Section -->
+                    <div class="camera-container d-none mb-3 text-center border p-2 rounded-3" id="camera-section-edit-profile" style="background: rgba(0,0,0,0.03);">
+                        <video id="webcam-edit-profile" autoplay playsinline style="width: 100%; max-height: 200px; border-radius: var(--radius-md); transform: scaleX(-1); background: #000;"></video>
+                        <canvas id="canvas-edit-profile" class="d-none"></canvas>
+                        
+                        <!-- Captured Photo Preview -->
+                        <div id="captured-preview-container-edit-profile" class="d-none mt-2 text-center">
+                            <img id="captured-preview-edit-profile" class="img-fluid rounded border border-primary shadow-sm" style="max-height: 180px;">
+                            <p class="text-success mt-1 fw-semibold mb-0" style="font-size: 0.85rem;"><i class="fa-solid fa-circle-check"></i> Photo Captured Successfully</p>
+                        </div>
+                        
+                        <div class="d-flex justify-content-center gap-2 mt-2">
+                            <button type="button" class="btn btn-sm btn-primary" id="btn-capture-edit-profile" onclick="capturePhoto('edit-profile')"><i class="fa-solid fa-circle-dot"></i> Capture Frame</button>
+                            <button type="button" class="btn btn-sm btn-secondary d-none" id="btn-retake-edit-profile" onclick="retakePhoto('edit-profile')"><i class="fa-solid fa-rotate-left"></i> Retake</button>
+                        </div>
+                    </div>
+
+                    {% if student.image_filename %}
+                    <div class="mt-3 text-center">
+                        <small class="text-muted d-block mb-2">Current Photo:</small>
+                        <img src="{{ url_for('main.uploaded_face', filename=student.image_filename) }}" 
+                             class="rounded shadow-sm" 
+                             style="width: 100px; height: 100px; object-fit: cover; border: 2px solid var(--border-card);">
+                    </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2.5 shadow">
+                    Submit Change Request
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

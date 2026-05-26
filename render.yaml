@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: smartvision-attendance-portal
+    env: docker
+    dockerfilePath: Dockerfile
+    plan: free # Can be upgraded for faster CPU compilation
+    
+    # Mount persistent disk storage to keep SQLite database persistent across deploys
+    disk:
+      name: smartvision-db
+      mountPath: /app/data
+      sizeGB: 1
+
+    # Define environment variables
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:////app/data/smartvision.db
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
