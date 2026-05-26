@@ -100,6 +100,7 @@
             {% for class_item in classes %}
             <option value="class-{{ class_item.id }}">{{ class_item.name }}</option>
             {% endfor %}
+            <option value="class-None">Awaiting Class (Unclassified)</option>
         </select>
         <a href="{{ url_for('main.register_student') }}" class="btn btn-primary btn-sm shadow-sm py-2 px-3 fw-semibold">Add New Student</a>
     </div>

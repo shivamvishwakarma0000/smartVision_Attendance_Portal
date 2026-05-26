@@ -4,6 +4,18 @@
 {% block page_title %}Student Analytics Portal{% endblock %}
 
 {% block content %}
+{% if not student.class_id %}
+<div class="alert alert-info border-0 shadow-sm rounded-3 py-3 mb-4 fade-in" style="background-color: rgba(59, 130, 246, 0.1); color: #1e3a8a;">
+    <div class="d-flex align-items-center">
+        <i class="fa-solid fa-circle-info fs-4 me-3 text-primary"></i>
+        <div>
+            <h6 class="fw-bold mb-1">Registration Successful! Class Assignment Pending</h6>
+            Your account has been registered successfully. An administrator has not assigned you to a class yet. Please wait for the administrator to approve and assign your class.
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% if pending_request %}
 <div class="alert alert-warning border-0 shadow-sm rounded-3 py-3 mb-4 fade-in" style="background-color: var(--warning-bg); color: var(--warning);">
     <div class="d-flex justify-content-between align-items-center">
@@ -37,7 +49,7 @@
             <div class="w-100 text-start mt-2 px-3 fs-7" style="font-size: 0.9rem;">
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-muted">Class:</span>
-                    <strong class="text-dark">{{ student.class_assigned.name }}</strong>
+                    <strong class="text-dark">{{ student.class_assigned.name if student.class_assigned else 'Pending Assignment' }}</strong>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-muted">Roll No:</span>

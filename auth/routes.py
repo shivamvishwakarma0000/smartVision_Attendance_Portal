@@ -229,17 +229,26 @@ def signup():
                 db.session.add(new_user)
                 db.session.flush()  # Get new_user.id
 
-                # class_id is NULL — admin will assign class later
+                # Retrieve selected class_id from form (optional - admin will assign if not provided)
+                selected_class_id = request.form.get('class_id')
+                class_id_int = None
+                if selected_class_id:
+                    try:
+                        class_id_int = int(selected_class_id)
+                    except ValueError:
+                        pass
+                
                 new_student = Student(
                     name=name,
                     roll_no=roll_no,
                     enrollment_no=enrollment_no,
                     mobile=mobile or None,
-                    class_id=None,  # Admin assigns class
+                    class_id=class_id_int,
                     face_encoding=face_encoding_bytes,
                     image_filename=image_filename,
                     user_id=new_user.id
                 )
+
                 db.session.add(new_student)
                 db.session.commit()
 

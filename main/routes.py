@@ -109,6 +109,9 @@ def get_retention_risk_students():
 @admin_required
 def dashboard():
     students_list = get_admin_students()
+    unclassified_students = Student.query.filter(Student.class_id == None).all()
+    students_list = students_list + unclassified_students
+    
     subjects = get_admin_subjects()
     classes = get_admin_classes()
 
@@ -184,6 +187,14 @@ def dashboard():
             "faculty": faculty_display,
             "avg_attendance": f"{avg_attendance}%"
         }
+
+    # Add unclassified metrics
+    class_details["class-None"] = {
+        "name": "Awaiting Class",
+        "enrolled": len(unclassified_students),
+        "faculty": "Pending Assignment",
+        "avg_attendance": "0.0%"
+    }
 
     # "All Classes" global metrics
     all_teachers = list(set([sub.teacher.name for sub in subjects if sub.teacher]))
@@ -646,10 +657,32 @@ def delete_todays_attendance():
 @login_required
 @admin_required
 def view_reports():
-    all_students = get_admin_students()
+    classes = get_admin_classes()
+    class_id = request.args.get('class_id')
+    
+    if class_id == 'unclassified':
+        students = Student.query.filter(Student.class_id == None).all()
+        selected_class_id = 'unclassified'
+    elif class_id:
+        try:
+            class_id_int = int(class_id)
+            # Verify the class is managed by the current admin
+            if class_id_int in [c.id for c in classes]:
+                students = Student.query.filter_by(class_id=class_id_int).all()
+                selected_class_id = class_id_int
+            else:
+                students = []
+                selected_class_id = None
+        except ValueError:
+            students = get_admin_students()
+            selected_class_id = None
+    else:
+        students = get_admin_students()
+        selected_class_id = None
+
     # Sort by class name and student name
-    all_students = sorted(all_students, key=lambda x: (x.class_assigned.name, x.name))
-    return render_template('view_reports.html', students=all_students)
+    students = sorted(students, key=lambda x: (x.class_assigned.name if x.class_assigned else '', x.name))
+    return render_template('view_reports.html', students=students, classes=classes, selected_class_id=selected_class_id)
 
 @main_bp.route('/delete_student/<int:student_id>', methods=['POST'])
 @login_required

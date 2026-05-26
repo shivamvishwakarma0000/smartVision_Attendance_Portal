@@ -34,7 +34,10 @@ def dashboard():
         return redirect(url_for('auth.logout'))
 
     # Retrieve all subjects assigned to this student's class
-    subjects = Subject.query.filter_by(class_id=student.class_id).all()
+    if student.class_id:
+        subjects = Subject.query.filter_by(class_id=student.class_id).all()
+    else:
+        subjects = []
     
     subject_names = []
     attendance_percentages = []

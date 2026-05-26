@@ -14,8 +14,8 @@
                 <!-- Class Selection -->
                 <div class="mb-3">
                     <label for="class_id" class="form-label fw-semibold">Assign to Class Register</label>
-                    <select class="form-select" id="class_id" name="class_id" required>
-                        <option selected disabled value="">Choose a class...</option>
+                    <select class="form-select" id="class_id" name="class_id">
+                        <option selected value="">Assign Later (Unassigned)</option>
                         {% for class_item in classes %}
                         <option value="{{ class_item.id }}">{{ class_item.name }}</option>
                         {% endfor %}
