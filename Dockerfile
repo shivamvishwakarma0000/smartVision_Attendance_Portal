@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install pre-compiled dlib from conda-forge (prevents GCC OOM compilation errors)
-RUN conda install -y -c conda-forge dlib && conda clean -afy
+RUN conda install -y -c conda-forge dlib python=3.10 && conda clean -afy
 
 # Copy and install python dependencies via pip
 COPY requirements.txt /app/
