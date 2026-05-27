@@ -5,7 +5,10 @@ FROM python:3.10-slim-bullseye
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     DEBIAN_FRONTEND=noninteractive \
-    MAKEFLAGS="-j1"
+    MAKEFLAGS="-j1" \
+    MAX_JOBS="1" \
+    CFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768" \
+    CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768"
 
 # Set work directory
 WORKDIR /app
