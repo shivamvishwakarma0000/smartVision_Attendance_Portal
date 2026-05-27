@@ -707,3 +707,20 @@ body {
         overflow: hidden;
     }
 }
+/* Fixes for dark mode text colors */
+[data-theme="dark"] .form-label,
+[data-theme="dark"] label,
+[data-theme="dark"] .text-dark {
+    color: var(--text-primary) !important;
+}
+
+/* Fixes for mobile scrolling */
+.auth-scroll-container {
+    background-color: var(--bg-main) !important;
+}
+@media (min-width: 992px) {
+    .auth-scroll-container {
+        height: 100vh;
+        overflow-y: auto;
+    }
+}
