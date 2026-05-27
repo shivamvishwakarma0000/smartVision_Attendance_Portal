@@ -59,7 +59,7 @@
     </div>
 
     <!-- Right Side: Unified Glass Card (Centering Container) -->
-    <div class="col-lg-5 col-12 d-flex flex-column justify-content-center align-items-center p-3 p-md-4 bg-light" 
+    <div class="col-lg-5 col-12 d-flex flex-column p-3 p-md-4 bg-light" 
          style="min-height: 100vh; overflow-y: auto; background-color: var(--bg-main) !important;">
         
         <div class="card p-3 p-md-4 shadow-lg border-0 w-100 fade-in" 
@@ -100,15 +100,15 @@
                     <!-- Role Tab Selector -->
                     <div class="mb-3.5 d-flex justify-content-center bg-light p-1 rounded-3 border">
                         <input type="radio" class="btn-check" name="login_role" id="login_role_student" value="student" checked onclick="toggleLoginRole('student')">
-                        <label class="btn btn-sm btn-outline-primary px-3 py-1.5 w-50" for="login_role_student"><i class="fa-solid fa-graduation-cap me-1"></i> Student</label>
+                        <label class="btn btn-sm btn-outline-primary px-3 py-2 w-50" for="login_role_student"><i class="fa-solid fa-graduation-cap me-1"></i> Student</label>
                         <input type="radio" class="btn-check" name="login_role" id="login_role_admin" value="admin" onclick="toggleLoginRole('admin')">
-                        <label class="btn btn-sm btn-outline-primary px-3 py-1.5 w-50" for="login_role_admin"><i class="fa-solid fa-user-shield me-1"></i> Admin</label>
+                        <label class="btn btn-sm btn-outline-primary px-3 py-2 w-50" for="login_role_admin"><i class="fa-solid fa-user-shield me-1"></i> Admin</label>
                     </div>
 
                     <!-- Email Input -->
                     <div class="mb-2">
                         <label for="login_email" class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Email Address</label>
-                        <input type="email" class="form-control py-1.5" id="login_email" name="email" placeholder="name@domain.com" required style="font-size: 0.85rem;">
+                        <input type="email" class="form-control py-2" id="login_email" name="email" placeholder="name@domain.com" required style="font-size: 0.85rem;">
                     </div>
                     
                     <!-- Password Input -->
@@ -117,7 +117,7 @@
                             <label for="login_password" class="form-label fw-semibold mb-0" style="font-size: 0.8rem;">Password</label>
                             <a href="javascript:void(0)" onclick="switchState('forgot')" class="text-primary text-decoration-none fw-semibold" style="font-size: 0.8rem;">Forgot password?</a>
                         </div>
-                        <input type="password" class="form-control py-1.5" id="login_password" name="password" placeholder="••••••••" required style="font-size: 0.85rem;">
+                        <input type="password" class="form-control py-2" id="login_password" name="password" placeholder="••••••••" required style="font-size: 0.85rem;">
                     </div>
                     
                     <!-- Submit Button -->
@@ -159,29 +159,29 @@
                     <input type="hidden" name="signup_role" value="student">
 
                     <!-- Common Fields -->
-                    <div class="mb-1.5">
+                    <div class="mb-2">
                         <label for="su_name" class="form-label fw-semibold mb-0.5" style="font-size: 0.8rem;">Full Name</label>
-                        <input type="text" class="form-control py-1.5" id="su_name" name="name" placeholder="John Doe" required style="font-size: 0.85rem;">
+                        <input type="text" class="form-control py-2" id="su_name" name="name" placeholder="John Doe" required style="font-size: 0.85rem;">
                     </div>
-                    <div class="mb-1.5">
+                    <div class="mb-2">
                         <label for="su_email" class="form-label fw-semibold mb-0.5" style="font-size: 0.8rem;">Email Address</label>
-                        <input type="email" class="form-control py-1.5" id="su_email" name="email" placeholder="name@domain.com" required style="font-size: 0.85rem;">
+                        <input type="email" class="form-control py-2" id="su_email" name="email" placeholder="name@domain.com" required style="font-size: 0.85rem;">
                     </div>
                     <div class="mb-2">
                         <label for="su_password" class="form-label fw-semibold mb-0.5" style="font-size: 0.8rem;">Password</label>
-                        <input type="password" class="form-control py-1.5" id="su_password" name="password" placeholder="Min. 8 characters" required minlength="8" style="font-size: 0.85rem;">
+                        <input type="password" class="form-control py-2" id="su_password" name="password" placeholder="Min. 8 characters" required minlength="8" style="font-size: 0.85rem;">
                     </div>
 
                     <!-- Student-Only Fields -->
                     <div id="student_signup_fields" class="p-2 rounded-3 border mb-2" style="background: rgba(99,102,241,0.04); border-color: rgba(99,102,241,0.15) !important; font-size: 0.85rem;">
-                        <h6 class="fw-bold text-primary mb-1.5" style="font-size: 0.82rem;">
+                        <h6 class="fw-bold text-primary mb-2" style="font-size: 0.82rem;">
                             <i class="fa-solid fa-id-card me-1"></i>Student Information
                         </h6>
-                        <div class="mb-1.5">
+                        <div class="mb-2">
                             <label for="su_mobile" class="form-label fw-semibold mb-0.5" style="font-size: 0.75rem;">Mobile Number</label>
                             <input type="tel" class="form-control py-1" id="su_mobile" name="mobile" placeholder="+91 9876543210" style="font-size: 0.8rem;">
                         </div>
-                        <div class="row g-2 mb-1.5">
+                        <div class="row g-2 mb-2">
                             <div class="col-6">
                                 <label for="su_roll_no" class="form-label fw-semibold mb-0.5" style="font-size: 0.75rem;">Roll No <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control py-1" id="su_roll_no" name="roll_no" placeholder="CS2026-04" required style="font-size: 0.8rem;">
@@ -197,7 +197,7 @@
                             <input type="hidden" name="captured_image_base64" id="captured_image_base64-signup">
                             
                             <!-- Toggle Selection Mode -->
-                            <div class="d-flex gap-1.5 mb-2">
+                            <div class="d-flex gap-2 mb-2">
                                 <button type="button" class="btn btn-xs btn-primary w-50 py-1" id="btn-local-mode-signup" onclick="setPhotoMode('signup', 'local')" style="font-size: 0.72rem;">
                                     <i class="fa-solid fa-image"></i> Local File
                                 </button>
@@ -212,7 +212,7 @@
                             </div>
 
                             <!-- Camera Preview Section -->
-                            <div class="camera-container d-none mb-2 text-center border p-1.5 rounded-3" id="camera-section-signup" style="background: rgba(0,0,0,0.03);">
+                            <div class="camera-container d-none mb-2 text-center border p-2 rounded-3" id="camera-section-signup" style="background: rgba(0,0,0,0.03);">
                                 <video id="webcam-signup" autoplay playsinline style="width: 100%; max-height: 150px; border-radius: 8px; transform: scaleX(-1); background: #000;"></video>
                                 <canvas id="canvas-signup" class="d-none"></canvas>
                                 
@@ -222,7 +222,7 @@
                                     <p class="text-success mt-0.5 fw-semibold mb-0" style="font-size: 0.75rem;"><i class="fa-solid fa-circle-check"></i> Captured</p>
                                 </div>
                                 
-                                <div class="d-flex justify-content-center gap-1.5 mt-1.5">
+                                <div class="d-flex justify-content-center gap-2 mt-2">
                                     <button type="button" class="btn btn-xs btn-primary py-0.5 px-2" id="btn-capture-signup" onclick="capturePhoto('signup')" style="font-size: 0.7rem;">Capture</button>
                                     <button type="button" class="btn btn-xs btn-secondary py-0.5 px-2 d-none" id="btn-retake-signup" onclick="retakePhoto('signup')" style="font-size: 0.7rem;">Retake</button>
                                 </div>
@@ -257,7 +257,7 @@
                         <label for="forgot_email" class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Email Address</label>
                         <div class="input-group">
                             <span class="input-group-text" style="background: var(--bg-card); border-color: var(--border-card);"><i class="fa-solid fa-envelope text-muted"></i></span>
-                            <input type="email" class="form-control py-1.5" id="forgot_email" name="email" placeholder="name@domain.com" required style="font-size: 0.85rem;">
+                            <input type="email" class="form-control py-2" id="forgot_email" name="email" placeholder="name@domain.com" required style="font-size: 0.85rem;">
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100 py-2 shadow" style="font-size: 0.9rem;">
@@ -314,12 +314,12 @@
                 <form method="POST" action="{{ url_for('auth.reset_password_otp') }}">
                     <div class="mb-2">
                         <label for="rp_password" class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">New Password</label>
-                        <input type="password" class="form-control py-1.5" id="rp_password" name="password"
+                        <input type="password" class="form-control py-2" id="rp_password" name="password"
                                placeholder="Min. 8 characters" required minlength="8" style="font-size: 0.85rem;">
                     </div>
                     <div class="mb-3">
                         <label for="rp_confirm" class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Confirm Password</label>
-                        <input type="password" class="form-control py-1.5" id="rp_confirm" name="confirm_password"
+                        <input type="password" class="form-control py-2" id="rp_confirm" name="confirm_password"
                                placeholder="Re-enter password" required minlength="8" style="font-size: 0.85rem;">
                     </div>
                     <button type="submit" class="btn btn-success w-100 py-2 shadow" style="font-size: 0.9rem;">
@@ -359,14 +359,14 @@
 
                     <!-- Student Specific Section -->
                     <div id="gcomplete_fields" class="p-2 rounded-3 border mb-2" style="background: rgba(99,102,241,0.04); border-color: rgba(99, 102, 241, 0.15) !important; font-size: 0.85rem;">
-                        <h6 class="fw-bold text-primary mb-1.5" style="font-size: 0.82rem;">
+                        <h6 class="fw-bold text-primary mb-2" style="font-size: 0.82rem;">
                             <i class="fa-solid fa-id-card me-1"></i>Student Information
                         </h6>
-                        <div class="mb-1.5">
+                        <div class="mb-2">
                             <label for="gcomplete_mobile" class="form-label fw-semibold mb-0.5" style="font-size: 0.75rem;">Mobile Number</label>
                             <input type="tel" class="form-control py-1" id="gcomplete_mobile" name="mobile" placeholder="+91 9876543210" style="font-size: 0.8rem;">
                         </div>
-                        <div class="row g-2 mb-1.5">
+                        <div class="row g-2 mb-2">
                             <div class="col-6">
                                 <label for="gcomplete_roll_no" class="form-label fw-semibold mb-0.5" style="font-size: 0.75rem;">Roll No <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control py-1" id="gcomplete_roll_no" name="roll_no" placeholder="CS2026-04" required style="font-size: 0.8rem;">
@@ -382,7 +382,7 @@
                             <input type="hidden" name="captured_image_base64" id="captured_image_base64-gcomplete">
                             
                             <!-- Toggle Selection Mode -->
-                            <div class="d-flex gap-1.5 mb-2">
+                            <div class="d-flex gap-2 mb-2">
                                 <button type="button" class="btn btn-xs btn-primary w-50 py-1" id="btn-local-mode-gcomplete" onclick="setPhotoMode('gcomplete', 'local')" style="font-size: 0.72rem;">
                                     <i class="fa-solid fa-image"></i> Local File
                                 </button>
@@ -397,7 +397,7 @@
                             </div>
 
                             <!-- Camera Preview Section -->
-                            <div class="camera-container d-none mb-2 text-center border p-1.5 rounded-3" id="camera-section-gcomplete" style="background: rgba(0,0,0,0.03);">
+                            <div class="camera-container d-none mb-2 text-center border p-2 rounded-3" id="camera-section-gcomplete" style="background: rgba(0,0,0,0.03);">
                                 <video id="webcam-gcomplete" autoplay playsinline style="width: 100%; max-height: 150px; border-radius: 8px; transform: scaleX(-1); background: #000;"></video>
                                 <canvas id="canvas-gcomplete" class="d-none"></canvas>
                                 
@@ -407,7 +407,7 @@
                                     <p class="text-success mt-0.5 fw-semibold mb-0" style="font-size: 0.75rem;"><i class="fa-solid fa-circle-check"></i> Captured</p>
                                 </div>
                                 
-                                <div class="d-flex justify-content-center gap-1.5 mt-1.5">
+                                <div class="d-flex justify-content-center gap-2 mt-2">
                                     <button type="button" class="btn btn-xs btn-primary py-0.5 px-2" id="btn-capture-gcomplete" onclick="capturePhoto('gcomplete')" style="font-size: 0.7rem;">Capture</button>
                                     <button type="button" class="btn btn-xs btn-secondary py-0.5 px-2 d-none" id="btn-retake-gcomplete" onclick="retakePhoto('gcomplete')" style="font-size: 0.7rem;">Retake</button>
                                 </div>
