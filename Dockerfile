@@ -33,8 +33,8 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copy project files
 COPY . /app/
 
-# Expose port (Render sets PORT environment variable dynamically)
-EXPOSE 10000
+# Expose port (Hugging Face Spaces uses 7860, Render overrides via PORT env)
+EXPOSE 7860
 
 # Start app using Gunicorn with multi-threading to prevent locks during face scans
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "app:app", "--threads", "4", "--workers", "1", "--timeout", "120"]
+CMD ["gunicorn", "--bind", "0.0.0.0:7860", "app:app", "--threads", "4", "--workers", "1", "--timeout", "120"]
