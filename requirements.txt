@@ -7,4 +7,4 @@ werkzeug
 gunicorn
 authlib
 requests
-setuptools
+setuptools<76.0.0
