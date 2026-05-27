@@ -56,6 +56,70 @@
     color: var(--text-primary);
 }
 
+/* Override bg-white helper classes in dark mode to prevent bright white areas */
+[data-theme="dark"] .bg-white {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Dropdown Menu styling in Dark Mode */
+[data-theme="dark"] .dropdown-menu {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: #f3f4f6 !important;
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+}
+
+/* Modal styling in Dark Mode */
+[data-theme="dark"] .modal-content {
+    background-color: #0f172a !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-card) !important;
+}
+
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+    border-color: var(--border-card) !important;
+}
+
+/* Alert adaptation in Dark Mode */
+[data-theme="dark"] .alert {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-card) !important;
+}
+
+[data-theme="dark"] .alert-success {
+    background-color: var(--success-bg) !important;
+    color: var(--success) !important;
+    border-color: rgba(16, 185, 129, 0.25) !important;
+}
+
+[data-theme="dark"] .alert-danger {
+    background-color: var(--danger-bg) !important;
+    color: var(--danger) !important;
+    border-color: rgba(239, 68, 68, 0.25) !important;
+}
+
+[data-theme="dark"] .alert-warning {
+    background-color: var(--warning-bg) !important;
+    color: var(--warning) !important;
+    border-color: rgba(245, 158, 11, 0.25) !important;
+}
+
+[data-theme="dark"] .alert-info {
+    background-color: var(--primary-bg) !important;
+    color: var(--primary) !important;
+    border-color: rgba(99, 102, 241, 0.25) !important;
+}
+
 /* Form Controls and Select Option styling in Dark Mode */
 [data-theme="dark"] .form-control, 
 [data-theme="dark"] .form-select {
@@ -124,21 +188,29 @@
 
 /* Tables and logs in Dark Mode */
 [data-theme="dark"] .table {
+    background-color: transparent !important;
     color: #e5e7eb !important;
     border-color: #334155 !important;
 }
 
-[data-theme="dark"] .table th,
+[data-theme="dark"] .table tr,
 [data-theme="dark"] .table td {
+    background-color: transparent !important;
     color: #e5e7eb !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .table th {
+    background-color: rgba(99, 102, 241, 0.15) !important;
+    color: #f3f4f6 !important;
     border-color: #334155 !important;
 }
 
 [data-theme="dark"] .table thead {
-    background-color: rgba(99, 102, 241, 0.15) !important;
+    background-color: transparent !important;
 }
 
-[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
+[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) td {
     background-color: rgba(255, 255, 255, 0.02) !important;
 }
 
@@ -188,10 +260,23 @@
 }
 
 /* Landing specific theme elements */
+#themeToggleLanding {
+    background-color: #ffffff !important;
+    color: var(--text-secondary) !important;
+    border: 1px solid #e5e7eb !important;
+}
+
 [data-theme="dark"] #themeToggleLanding {
     background-color: rgba(255, 255, 255, 0.05) !important;
     color: #fbbf24 !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Dynamic divider OR text backdrops */
+.login-or-divider {
+    background-color: var(--bg-card) !important;
+    color: var(--text-secondary) !important;
+    transition: background-color 0.3s ease;
 }
 
 [data-theme="dark"] .badge-attendance {
@@ -606,5 +691,19 @@ body {
 
     .sidebar-toggle {
         display: block;
+    }
+}
+
+/* Responsive Login Layout Container */
+.login-layout-container {
+    background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                      radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+    min-height: 100vh;
+}
+
+@media (min-width: 992px) {
+    .login-layout-container {
+        height: 100vh;
+        overflow: hidden;
     }
 }

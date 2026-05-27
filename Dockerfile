@@ -4,7 +4,8 @@ FROM python:3.10-slim-bullseye
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    DEBIAN_FRONTEND=noninteractive
+    DEBIAN_FRONTEND=noninteractive \
+    MAKEFLAGS="-j1"
 
 # Set work directory
 WORKDIR /app

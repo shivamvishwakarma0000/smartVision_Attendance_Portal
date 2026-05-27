@@ -43,6 +43,10 @@ def create_app():
         db_path = db_uri.replace('sqlite:///', '')
         if not db_path.startswith('/'):
             db_path = os.path.join(app.instance_path, db_path)
+        # Ensure database directory exists (vital for persistent volume paths on Render)
+        db_dir = os.path.dirname(db_path)
+        if db_dir:
+            os.makedirs(db_dir, exist_ok=True)
         db_migrations.run_migrations(db_path)
 
     # Initialize Database & Initial Seed Data inside application context
