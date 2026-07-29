@@ -1,4 +1,4 @@
-\documentclass[10pt,journal,compsoc,twocolumn,a4paper]{IEEEtran}
+\documentclass[10pt,conference,a4paper]{IEEEtran}
 
 \usepackage[utf8]{utf8}
 \usepackage[margin=0.75in]{geometry}
@@ -26,10 +26,9 @@
 \title{\LARGE \bf SmartVision: A Zero-GPU Multi-Face Biometric Attendance Portal Using ResNet-34 Deep Embeddings, Role-Based Access Scoping, and Proactive Risk Analytics}
 
 \author{
-    \IEEEauthorblockN{\textbf{Shivam Vishwakarma}\IEEEauthorrefmark{1}, \textbf{Prof. Harsh Pateliya}\IEEEauthorrefmark{2}, \textbf{Shivangi Sahu}\IEEEauthorrefmark{1}, \textbf{Nishtha Gupta}\IEEEauthorrefmark{1}, and \textbf{Srushti Ghunake}\IEEEauthorrefmark{1}}\\
-    \IEEEauthorblockA{\IEEEauthorrefmark{1}Department of Computer Science \& Engineering, Parul Institute of Engineering \& Technology (PIET), Parul University, Vadodara, Gujarat, India}\\
-    \IEEEauthorblockA{\IEEEauthorrefmark{2}Assistant Professor \& Project Guide, Department of Computer Science \& Engineering, Parul University, Vadodara, Gujarat, India}\\
-    \textit{Emails: shivam.v@smartvision-portal.org, harsh.pateliya@paruluniversity.ac.in}
+    \IEEEauthorblockN{Shivam Vishwakarma\IEEEauthorrefmark{1}, Prof. Harsh Pateliya\IEEEauthorrefmark{2}, Shivangi Sahu\IEEEauthorrefmark{1}, Nishtha Gupta\IEEEauthorrefmark{1}, and Srushti Ghunake\IEEEauthorrefmark{1}}
+    \IEEEauthorblockA{\IEEEauthorrefmark{1}Department of Computer Science \& Engineering, Parul Institute of Engineering \& Technology (PIET)\\ Parul University, Vadodara, Gujarat, India\\ Email: shivam.v@smartvision-portal.org}
+    \IEEEauthorblockA{\IEEEauthorrefmark{2}Assistant Professor \& Project Guide, Department of Computer Science \& Engineering\\ Parul University, Vadodara, Gujarat, India\\ Email: harsh.pateliya@paruluniversity.ac.in}
 }
 
 \maketitle
@@ -71,21 +70,21 @@ SmartVision utilizes a decoupled three-tier architecture ensuring high scalabili
 
 \begin{figure}[htbp]
 \centering
-\fbox{\small\textbf{SmartVision System Architecture Pipeline}}
-\caption{Decoupled Three-Tier Architecture: Presentation Layer (Jinja2/Bootstrap 5), Application Layer (Flask, OpenCV, Dlib ResNet-34), and Data Layer (SQLAlchemy ORM with 128-D Vector Embeddings).}
+\fbox{\small\textbf{Presentation Layer (Jinja2/Bootstrap) $\rightarrow$ Application Layer (Flask/OpenCV) $\rightarrow$ Data Layer (SQLAlchemy ORM)}}
+\caption{Decoupled Three-Tier Architecture comprising Presentation Layer, Application Layer, and Data Layer with 128-D Vector Embeddings.}
 \label{fig:arch}
 \end{figure}
 
 \subsection{Tri-Tier Role-Based Access Scoping (RBAC)}
 The system enforces strict control flow scoping across three distinct operational roles:
 \begin{itemize}
-    \item \textbf{Student Portal:} Allows self-registration, multiple profile image uploads for facial embedding generation, personal attendance percentage tracking, and subject-wise breakdown.
+    \item \textbf{Student Portal:} Allows self-registration, webcam live capture or multiple profile image uploads for facial embedding generation, personal attendance percentage tracking, and subject-wise breakdown.
     \item \textbf{Teacher Portal:} Dynamically scoped based on administrative assignment:
     \begin{itemize}
         \item \textit{Class Teacher Mode:} Access to full class registers, student management, and overall analytics.
         \item \textit{Subject Teacher Mode:} Scoped strictly to assigned subject registers (e.g., Computer Networks, IoT, Cyber Security), preventing unauthorized modification of other subject records.
     \end{itemize}
-    \item \textbf{Administrator Portal:} Centralized governance featuring side-by-side student/teacher registration approval queues, subject/class allocation, and institutional risk management.
+    \item \textbf{Administrator Portal:} Centralized governance featuring side-by-side visual student and teacher registration approval queues, subject/class allocation, and institutional risk management.
 \end{itemize}
 
 \subsection{Biometric Processing Pipeline}
@@ -132,7 +131,7 @@ When $S_i(t) \ge 5$, student $i$ is automatically flagged in the \textbf{Retenti
 SmartVision was rigorously tested on a dataset of 500 unconstrained classroom images across diverse environmental conditions.
 
 \begin{table}[htbp]
-\caption{Recognition Accuracy & Latency Across Environmental Scenarios}
+\caption{Recognition Accuracy \& Latency Across Environmental Scenarios}
 \label{tab:results}
 \begin{center}
 \begin{tabular}{lcccc}
@@ -151,7 +150,7 @@ High Density (50+ Faces) & 80 & 78 & 76 & 97.43\% \\
 \end{center}
 \end{table}
 
-Total execution latency for processing a 60-student multi-face classroom image averaged **3.75 seconds** on a dual-core Intel i5 CPU without GPU assistance.
+Total execution latency for processing a 60-student multi-face classroom image averaged \textbf{3.75 seconds} on a dual-core Intel i5 CPU without GPU assistance.
 
 \section{Conclusion}
 SmartVision successfully delivers an enterprise-grade, lightweight, zero-GPU biometric attendance portal. By combining ResNet-34 128-D embeddings with vectorized NumPy matching, tri-tier RBAC scoping, and automated retention risk alerts, the system achieves 97.40\% recognition accuracy, sub-second latency, and actionable administrative intelligence.
