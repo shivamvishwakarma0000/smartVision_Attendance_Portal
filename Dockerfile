@@ -14,17 +14,18 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --prefer-binary -r requirements.txt
 
 COPY . .
 
 # Create required directories
 RUN mkdir -p uploads/faces temp_uploads instance
 
-# Expose Hugging Face default port 7860
-EXPOSE 7860
+# Expose both 8080 (Runsite platform standard) and 7860 (Hugging Face fallback)
+EXPOSE 8080 7860
 
-ENV PORT=7860
+ENV PORT=8080
 ENV HOST=0.0.0.0
 
-CMD ["gunicorn", "--bind", "0.0.0.0:7860", "--workers", "2", "--timeout", "120", "app:app"]
+# Use 1 worker with 2 threads for optimal memory footprint (<200MB) on 256MB RAM instances
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8080} --workers 1 --threads 2 --timeout 120 app:app"]
