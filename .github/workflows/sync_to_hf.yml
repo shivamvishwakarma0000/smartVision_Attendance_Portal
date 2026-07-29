@@ -12,6 +12,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          lfs: true
 
       - name: Push to Hugging Face Space
         env:
@@ -22,6 +23,7 @@ jobs:
             exit 1
           fi
           git config --global user.email "shivam@smartvision.com"
-          git config --global user.name "shivan8858"
-          git remote add hf https://shivan8858:${HF_TOKEN}@huggingface.co/spaces/shivan8858/smartVision_Attendance_Portal
+          git config --global user.name "shivam8858"
+          git lfs install
+          git remote add hf https://shivam8858:${HF_TOKEN}@huggingface.co/spaces/shivam8858/smartVision_Attendance_Portal
           git push --force hf master:main
