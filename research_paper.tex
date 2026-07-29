@@ -1,4 +1,4 @@
-\documentclass[10pt,conference,a4paper]{IEEEtran}
+\documentclass[10pt,journal,compsoc,twocolumn,a4paper]{IEEEtran}
 
 \usepackage[utf8]{utf8}
 \usepackage[margin=0.75in]{geometry}
@@ -13,6 +13,8 @@
 \usepackage{url}
 \usepackage{microtype}
 \usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, shadows}
 
 \hypersetup{
     colorlinks=true,
@@ -53,9 +55,10 @@ While automated biometric systems using fingerprint scanners or RFID cards have 
 
 To address these limitations, we introduce \textbf{SmartVision}, an end-to-end, lightweight, zero-GPU biometric attendance portal. SmartVision combines ResNet-34 deep metric embeddings, vectorized matrix matching, a tri-tier RBAC architecture, and an automated 5-day consecutive absence risk matrix.
 
-\section{Literature Review \& Benchmark Analysis}
-A rigorous comparative analysis of 20 state-of-the-art attendance systems highlights the technical transitions and persistent gaps in the field:
+\section{Literature Review \& Comparative Analysis}
+A rigorous comparative synthesis of state-of-the-art research on biometric attendance systems highlights key technical paradigms and persistent operational voids:
 
+\subsection{Evolution of Computer Vision Paradigms}
 \begin{enumerate}
     \item \textbf{Classical Feature Extractors (Viola-Jones, PCA, LBPH):} Early models by Rathod et al. (2020) \cite{ref1} and Kapur et al. (2019) \cite{ref4} relied on Viola-Jones Haar cascades and Principal Component Analysis (Eigenfaces). These models exhibit extreme sensitivity to illumination, rotation, and facial expressions. Mehta et al. (2024) \cite{ref11} and Gupta et al. (2021) \cite{ref15} utilized Local Binary Pattern Histograms (LBPH), which fail when subjects change hairstyles or wear glasses.
     \item \textbf{HOG and Linear Classifiers:} Sharma et al. (2019) \cite{ref5} and Pankaj et al. (2020) \cite{ref17} used Histogram of Oriented Gradients (HOG) with SVM classifiers. Although spatial detection improved, classification latency scaled quadratically with classroom density.
@@ -63,17 +66,52 @@ A rigorous comparative analysis of 20 state-of-the-art attendance systems highli
     \item \textbf{Web Portals \& Multi-Role Governance Void:} Web portals proposed by Singh et al. (2020) \cite{ref7} and Samet \& Tanriverdi (2021) \cite{ref8} suffered from slow database queries exceeding 500 records and lacked granular role-based permissions separating Class Teachers from Subject Teachers.
 \end{enumerate}
 
+\begin{table*}[htbp]
+\caption{Comprehensive State-of-the-Art Literature Synthesis \& Paradigm Benchmarking}
+\label{tab:lit_review}
+\centering
+\begin{tabular}{lp{3.2cm}lcccc}
+\toprule
+\textbf{Ref. \& Author} & \textbf{Core Methodology} & \textbf{Hardware Req.} & \textbf{Max Density} & \textbf{Accuracy} & \textbf{Role Scoping} & \textbf{Risk Analytics} \\
+\midrule
+Rathod et al. (2020) \cite{ref1} & Viola-Jones + PCA & CPU (Commodity) & 5 Faces & 78.40\% & None & No \\
+Kapur et al. (2019) \cite{ref4} & Haar Cascade + Eigenfaces & CPU (Commodity) & 8 Faces & 81.20\% & Monolithic & No \\
+Sharma et al. (2019) \cite{ref5} & HOG + Linear SVM & CPU (Commodity) & 15 Faces & 88.60\% & Monolithic & No \\
+Patel et al. (2023) \cite{ref2} & FaceNet + MTCNN & High-End GPU & 40 Faces & 96.10\% & Single Admin & No \\
+Deshmukh et al. (2022) \cite{ref3} & 2D CNN + Triplet Loss & Dedicated GPU & 30 Faces & 95.80\% & Single Admin & No \\
+Joshi et al. (2023) \cite{ref9} & 3D Dense Alignment & Server GPU & 25 Faces & 94.50\% & Monolithic & No \\
+Singh et al. (2020) \cite{ref7} & Django + OpenCV LBPH & CPU Server & 12 Faces & 86.40\% & Generic Admin & No \\
+Ali et al. (2024) \cite{ref20} & SSD-MobileNet Edge & Edge NPU & 20 Faces & 91.20\% & Single Admin & No \\
+\midrule
+\textbf{SmartVision (Proposed)} & \textbf{ResNet-34 + Dlib 68-Ld + NumPy Vector} & \textbf{Zero-GPU (CPU)} & \textbf{60+ Faces} & \textbf{97.40\%} & \textbf{Tri-Tier RBAC} & \textbf{5-Day Predictive} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
 SmartVision resolves these gaps by combining lightweight CPU-optimized ResNet-34 embeddings with vectorized matrix processing, tri-tier RBAC, and automated retention risk evaluation.
 
 \section{System Architecture \& Technical Design}
 SmartVision utilizes a decoupled three-tier architecture ensuring high scalability, data privacy, and zero-GPU operational efficiency.
 
-\begin{figure}[htbp]
+\begin{figure*}[htbp]
 \centering
-\fbox{\small\textbf{Presentation Layer (Jinja2/Bootstrap) $\rightarrow$ Application Layer (Flask/OpenCV) $\rightarrow$ Data Layer (SQLAlchemy ORM)}}
-\caption{Decoupled Three-Tier Architecture comprising Presentation Layer, Application Layer, and Data Layer with 128-D Vector Embeddings.}
+\begin{tikzpicture}[node distance=1.8cm, auto, >=stealth',
+    block/.style={rectangle, draw=indigo!80, fill=indigo!5, thick, rounded corners=3pt, text width=4.5cm, align=center, minimum height=1.1cm, font=\small\sffamily},
+    arrow/.style={->, >=stealth, line width=1.2pt, color=indigo!80}]
+
+    % Nodes
+    \node (pres) [block] {\textbf{Presentation Layer}\\Jinja2 Templates, Bootstrap 5 UI, Live Camera Stream \& Multi-Upload};
+    \node (app) [block, right=1.2cm of pres] {\textbf{Application Layer}\\Flask Engine, Dlib 68-Landmark, ResNet-34 128-D Vectorizer, RBAC Scoping};
+    \node (data) [block, right=1.2cm of app] {\textbf{Data Layer}\\SQLAlchemy ORM, Vector Storage, PBKDF2:SHA256 Security, CSV/Defaulter Analytics};
+
+    % Arrows
+    \draw [arrow] (pres) -- node[above, font=\tiny\sffamily]{HTTP / JSON} (app);
+    \draw [arrow] (app) -- node[above, font=\tiny\sffamily]{SQL / ORM} (data);
+
+\end{tikzpicture}
+\caption{Decoupled Three-Tier System Architecture of SmartVision: Seamless Integration of Presentation, Application, and Data Storage Layers.}
 \label{fig:arch}
-\end{figure}
+\end{figure*}
 
 \subsection{Tri-Tier Role-Based Access Scoping (RBAC)}
 The system enforces strict control flow scoping across three distinct operational roles:
