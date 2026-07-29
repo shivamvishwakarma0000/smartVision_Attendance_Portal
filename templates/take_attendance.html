@@ -64,12 +64,36 @@
                     <!-- In-App Camera Section -->
                     <div id="camera-section-attendance" class="d-none border p-3 rounded-3 bg-light text-center" style="background: rgba(0,0,0,0.03); border-color: rgba(99,102,241,0.15) !important;">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="fs-7 text-muted fw-bold"><i class="fa-solid fa-circle-play text-success me-1"></i> Live Camera</span>
+                            <span class="fs-7 text-muted fw-bold"><i class="fa-solid fa-circle-play text-success me-1"></i> Live Camera Preview</span>
                             <button type="button" class="btn btn-xs btn-outline-secondary py-1 px-2" onclick="window.toggleAttendanceCameraDirection()" style="font-size: 0.75rem;">
                                 <i class="fa-solid fa-arrows-rotate me-1"></i> Flip Camera
                             </button>
                         </div>
-                        <video id="webcam-attendance" autoplay playsinline class="w-100 rounded-3 border bg-dark mb-2 shadow-sm" style="max-height: 240px; object-fit: cover;"></video>
+                        
+                        <!-- Video Container with Bounding Box Overlay & Floating Count Popup -->
+                        <div class="position-relative mb-2 rounded-3 overflow-hidden bg-dark shadow-sm" style="min-height: 240px; max-height: 320px;">
+                            <video id="webcam-attendance" autoplay playsinline class="w-100 h-100 position-relative" style="object-fit: cover; display: block; max-height: 320px;"></video>
+
+                            <!-- Overlay Canvas for Face Bounding Boxes -->
+                            <canvas id="overlay-canvas-attendance" class="position-absolute top-0 start-0 w-100 h-100" style="pointer-events: none; z-index: 5;"></canvas>
+
+                            <!-- Floating Live Face Count Badge (Top-Left overlay) -->
+                            <div class="position-absolute top-0 start-0 m-2 px-2.5 py-1 rounded-pill bg-dark bg-opacity-75 text-white fs-8 fw-semibold d-flex align-items-center shadow-sm" style="z-index: 10; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2);">
+                                <span id="live-pulse-dot" class="spinner-grow spinner-grow-sm text-success me-1.5" role="status" style="width: 8px; height: 8px;"></span>
+                                <span>Faces Found: <strong id="live-face-count" class="text-warning">0</strong></span>
+                            </div>
+
+                            <!-- Floating Recognized Students Live Popup (Bottom-Left overlay) -->
+                            <div id="live-recognized-popup" class="position-absolute bottom-0 start-0 m-2 p-2 rounded-3 bg-dark bg-opacity-85 text-white fs-8 shadow-sm d-none" style="z-index: 10; max-width: 90%; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.15);">
+                                <div class="fw-bold text-success mb-1 fs-8 d-flex align-items-center">
+                                    <i class="fa-solid fa-user-check me-1"></i> Live Recognized Students:
+                                </div>
+                                <div id="live-students-list" class="d-flex flex-wrap gap-1">
+                                    <!-- Dynamic student pills -->
+                                </div>
+                            </div>
+                        </div>
+
                         <canvas id="canvas-attendance" class="d-none"></canvas>
                         
                         <div class="d-flex justify-content-center mb-3">
@@ -372,7 +396,12 @@ window.startAttendanceCamera = async function() {
             audio: false
         });
         attendanceStream = stream;
-        if (video) video.srcObject = stream;
+        if (video) {
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+                window.startLiveDetectionLoop();
+            };
+        }
     } catch (err) {
         console.error("Camera access error:", err);
         alert('Could not access camera: ' + err.message + '\nPlease check camera permissions or select "Local File(s)" mode.');
@@ -381,12 +410,136 @@ window.startAttendanceCamera = async function() {
 };
 
 window.stopAttendanceCamera = function() {
+    window.stopLiveDetectionLoop();
     if (attendanceStream) {
         attendanceStream.getTracks().forEach(track => track.stop());
         attendanceStream = null;
     }
     const video = document.getElementById('webcam-attendance');
     if (video) video.srcObject = null;
+};
+
+// Real-Time Live Face Detection Loop
+let liveDetectionInterval = null;
+let isDetectingLive = false;
+
+window.startLiveDetectionLoop = function() {
+    window.stopLiveDetectionLoop();
+    liveDetectionInterval = setInterval(async () => {
+        if (isDetectingLive || !attendanceStream) return;
+        const video = document.getElementById('webcam-attendance');
+        const overlayCanvas = document.getElementById('overlay-canvas-attendance');
+        if (!video || !video.videoWidth || video.paused || video.ended) return;
+
+        isDetectingLive = true;
+        try {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = video.videoWidth;
+            tempCanvas.height = video.videoHeight;
+            const ctx = tempCanvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+            const frameBase64 = tempCanvas.toDataURL('image/jpeg', 0.6);
+
+            const classSelect = document.getElementById('class_id');
+            const subjectSelect = document.getElementById('subject_id');
+            const class_id = classSelect ? classSelect.value : null;
+            const subject_id = subjectSelect ? subjectSelect.value : null;
+
+            const res = await fetch('/api/live_detect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    image: frameBase64,
+                    class_id: class_id,
+                    subject_id: subject_id
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                window.renderLiveDetectionOverlay(data, video, overlayCanvas);
+            }
+        } catch (err) {
+            console.error("Live detection error:", err);
+        } finally {
+            isDetectingLive = false;
+        }
+    }, 700);
+};
+
+window.stopLiveDetectionLoop = function() {
+    if (liveDetectionInterval) {
+        clearInterval(liveDetectionInterval);
+        liveDetectionInterval = null;
+    }
+    const overlayCanvas = document.getElementById('overlay-canvas-attendance');
+    if (overlayCanvas) {
+        const ctx = overlayCanvas.getContext('2d');
+        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+    }
+    const liveCountEl = document.getElementById('live-face-count');
+    if (liveCountEl) liveCountEl.textContent = '0';
+    const popupEl = document.getElementById('live-recognized-popup');
+    if (popupEl) popupEl.classList.add('d-none');
+};
+
+window.renderLiveDetectionOverlay = function(data, video, canvas) {
+    if (!video || !canvas) return;
+
+    canvas.width = video.clientWidth || video.videoWidth;
+    canvas.height = video.clientHeight || video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const countEl = document.getElementById('live-face-count');
+    if (countEl) countEl.textContent = data.total_faces || 0;
+
+    const popupEl = document.getElementById('live-recognized-popup');
+    const studentsListEl = document.getElementById('live-students-list');
+
+    if (!data.faces || data.faces.length === 0) {
+        if (popupEl) popupEl.classList.add('d-none');
+        return;
+    }
+
+    if (popupEl) popupEl.classList.remove('d-none');
+    if (studentsListEl) studentsListEl.innerHTML = '';
+
+    const scaleX = canvas.width / (data.img_width || video.videoWidth);
+    const scaleY = canvas.height / (data.img_height || video.videoHeight);
+
+    data.faces.forEach(face => {
+        const box = face.box;
+        const top = box.top * scaleY;
+        const right = box.right * scaleX;
+        const bottom = box.bottom * scaleY;
+        const left = box.left * scaleX;
+        const boxWidth = right - left;
+        const boxHeight = bottom - top;
+
+        ctx.strokeStyle = face.matched ? '#10b981' : '#f59e0b';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(left, top, boxWidth, boxHeight);
+
+        ctx.fillStyle = face.matched ? 'rgba(16, 185, 129, 0.85)' : 'rgba(245, 158, 11, 0.85)';
+        const labelText = face.matched ? `${face.name} (${face.roll_no})` : 'Unknown Face';
+        ctx.font = 'bold 12px sans-serif';
+        const textWidth = ctx.measureText(labelText).width;
+        ctx.fillRect(left, Math.max(0, top - 22), textWidth + 12, 22);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(labelText, left + 6, Math.max(14, top - 6));
+
+        if (studentsListEl) {
+            const pill = document.createElement('span');
+            pill.className = face.matched 
+                ? 'badge bg-success bg-opacity-75 text-white me-1 mb-1 px-2 py-1 fs-8'
+                : 'badge bg-warning bg-opacity-75 text-dark me-1 mb-1 px-2 py-1 fs-8';
+            pill.innerHTML = face.matched 
+                ? `<i class="fa-solid fa-check me-1"></i>${face.name} (${face.roll_no})` 
+                : `<i class="fa-solid fa-user-xmark me-1"></i>Unknown`;
+            studentsListEl.appendChild(pill);
+        }
+    });
 };
 
 window.toggleAttendanceCameraDirection = function() {

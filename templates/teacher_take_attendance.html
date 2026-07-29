@@ -83,8 +83,28 @@
                         <!-- Option 2: Live Camera Capture (Multiple Snaps) -->
                         <div class="mb-4">
                             <label class="form-label fw-bold text-dark"><i class="fas fa-video text-primary me-1"></i> Option 2: Live Camera Multi-Snap Capture</label>
-                            <div class="bg-dark rounded-3 overflow-hidden text-center position-relative mb-2" style="min-height: 240px;">
+                            <div class="bg-dark rounded-3 overflow-hidden text-center position-relative mb-2" style="min-height: 240px; max-height: 320px;">
                                 <video id="webcam" autoplay playsinline style="width: 100%; height: 240px; object-fit: cover; transform: scaleX(-1); display: none;"></video>
+                                
+                                <!-- Canvas overlay for real-time face bounding boxes -->
+                                <canvas id="teacher-overlay-canvas" class="position-absolute top-0 start-0 w-100 h-100" style="pointer-events: none; z-index: 5;"></canvas>
+
+                                <!-- Floating Live Face Counter Badge -->
+                                <div id="teacher-live-badge" class="position-absolute top-0 start-0 m-2 px-2.5 py-1 rounded-pill bg-dark bg-opacity-75 text-white fs-8 fw-semibold d-none align-items-center shadow-sm" style="z-index: 10; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2);">
+                                    <span class="spinner-grow spinner-grow-sm text-success me-1.5" role="status" style="width: 8px; height: 8px;"></span>
+                                    <span>Faces Found: <strong id="teacher-live-count" class="text-warning">0</strong></span>
+                                </div>
+
+                                <!-- Floating Recognized Students Popup Card -->
+                                <div id="teacher-recognized-popup" class="position-absolute bottom-0 start-0 m-2 p-2 rounded-3 bg-dark bg-opacity-85 text-white fs-8 shadow-sm d-none" style="z-index: 10; max-width: 90%; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.15);">
+                                    <div class="fw-bold text-success mb-1 fs-8 d-flex align-items-center">
+                                        <i class="fas fa-user-check me-1"></i> Live Recognized Students:
+                                    </div>
+                                    <div id="teacher-students-list" class="d-flex flex-wrap gap-1">
+                                        <!-- Dynamic student pills -->
+                                    </div>
+                                </div>
+
                                 <div id="camera-placeholder" class="py-5 text-white-50">
                                     <i class="fas fa-video fs-1 mb-2"></i>
                                     <p class="mb-0">Click 'Start Camera' below to open live webcam</p>
@@ -172,6 +192,8 @@
 
     let stream = null;
     let snapCount = 0;
+    let teacherDetectInterval = null;
+    let isDetectingTeacher = false;
 
     startBtn.addEventListener('click', async () => {
         try {
@@ -182,6 +204,11 @@
             snapBtn.disabled = false;
             startBtn.classList.replace('btn-outline-primary', 'btn-outline-secondary');
             startBtn.innerHTML = '<i class="fas fa-sync me-1"></i>Camera Active';
+
+            document.getElementById('teacher-live-badge').classList.remove('d-none');
+            document.getElementById('teacher-live-badge').classList.add('d-flex');
+
+            startTeacherLiveDetection();
         } catch (err) {
             alert('Could not access camera: ' + err.message);
         }
@@ -200,7 +227,6 @@
         snapCount++;
         counterEl.innerText = snapCount;
 
-        // Create Thumbnail Preview
         const thumbWrapper = document.createElement('div');
         thumbWrapper.className = 'position-relative d-inline-block';
         thumbWrapper.innerHTML = `
@@ -209,12 +235,115 @@
         `;
         previews.appendChild(thumbWrapper);
 
-        // Append hidden base64 input
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
         hiddenInput.name = 'captured_images_base64';
         hiddenInput.value = dataUrl;
         hiddenContainer.appendChild(hiddenInput);
     });
+
+    function startTeacherLiveDetection() {
+        if (teacherDetectInterval) clearInterval(teacherDetectInterval);
+        teacherDetectInterval = setInterval(async () => {
+            if (isDetectingTeacher || !stream) return;
+            if (!webcam || !webcam.videoWidth || webcam.paused || webcam.ended) return;
+
+            isDetectingTeacher = true;
+            try {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = webcam.videoWidth;
+                tempCanvas.height = webcam.videoHeight;
+                const ctx = tempCanvas.getContext('2d');
+                ctx.translate(tempCanvas.width, 0);
+                ctx.scale(-1, 1);
+                ctx.drawImage(webcam, 0, 0, tempCanvas.width, tempCanvas.height);
+                const frameBase64 = tempCanvas.toDataURL('image/jpeg', 0.6);
+
+                const subjectSelect = document.getElementById('teacher_subject_id');
+                const subject_id = subjectSelect ? subjectSelect.value : null;
+
+                const res = await fetch('/api/live_detect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image: frameBase64,
+                        subject_id: subject_id
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    renderTeacherOverlay(data);
+                }
+            } catch (err) {
+                console.error("Teacher live detection error:", err);
+            } finally {
+                isDetectingTeacher = false;
+            }
+        }, 700);
+    }
+
+    function renderTeacherOverlay(data) {
+        const overlayCanvas = document.getElementById('teacher-overlay-canvas');
+        if (!overlayCanvas || !webcam) return;
+
+        overlayCanvas.width = webcam.clientWidth || webcam.videoWidth;
+        overlayCanvas.height = webcam.clientHeight || webcam.videoHeight;
+        const ctx = overlayCanvas.getContext('2d');
+        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+        document.getElementById('teacher-live-count').textContent = data.total_faces || 0;
+
+        const popupEl = document.getElementById('teacher-recognized-popup');
+        const studentsListEl = document.getElementById('teacher-students-list');
+
+        if (!data.faces || data.faces.length === 0) {
+            popupEl.classList.add('d-none');
+            return;
+        }
+
+        popupEl.classList.remove('d-none');
+        studentsListEl.innerHTML = '';
+
+        const scaleX = overlayCanvas.width / (data.img_width || webcam.videoWidth);
+        const scaleY = overlayCanvas.height / (data.img_height || webcam.videoHeight);
+
+        data.faces.forEach(face => {
+            const box = face.box;
+            let top = box.top * scaleY;
+            let right = box.right * scaleX;
+            let bottom = box.bottom * scaleY;
+            let left = box.left * scaleX;
+
+            // Mirror coordinates because video has transform: scaleX(-1)
+            const mirroredLeft = overlayCanvas.width - right;
+            const mirroredRight = overlayCanvas.width - left;
+            const boxWidth = mirroredRight - mirroredLeft;
+            const boxHeight = bottom - top;
+
+            ctx.strokeStyle = face.matched ? '#10b981' : '#f59e0b';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(mirroredLeft, top, boxWidth, boxHeight);
+
+            ctx.fillStyle = face.matched ? 'rgba(16, 185, 129, 0.85)' : 'rgba(245, 158, 11, 0.85)';
+            const labelText = face.matched ? `${face.name} (${face.roll_no})` : 'Unknown Face';
+            ctx.font = 'bold 12px sans-serif';
+            const textWidth = ctx.measureText(labelText).width;
+            ctx.fillRect(mirroredLeft, Math.max(0, top - 22), textWidth + 12, 22);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(labelText, mirroredLeft + 6, Math.max(14, top - 6));
+
+            if (studentsListEl) {
+                const pill = document.createElement('span');
+                pill.className = face.matched 
+                    ? 'badge bg-success bg-opacity-75 text-white me-1 mb-1 px-2 py-1 fs-8'
+                    : 'badge bg-warning bg-opacity-75 text-dark me-1 mb-1 px-2 py-1 fs-8';
+                pill.innerHTML = face.matched 
+                    ? `<i class="fas fa-check me-1"></i>${face.name} (${face.roll_no})` 
+                    : `<i class="fas fa-user-times me-1"></i>Unknown`;
+                studentsListEl.appendChild(pill);
+            }
+        });
+    }
 </script>
 {% endblock %}

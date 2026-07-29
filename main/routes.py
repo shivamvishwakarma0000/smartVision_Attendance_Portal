@@ -699,6 +699,120 @@ def delete_attendance(attendance_id):
     flash('Attendance record deleted.', 'success')
     return redirect(url_for('main.take_attendance'))
 
+@main_bp.route('/api/live_detect', methods=['POST'])
+@login_required
+def api_live_detect():
+    import base64
+    import io
+    from PIL import Image
+
+    data = request.get_json() or {}
+    image_data = data.get('image', '')
+    class_id = data.get('class_id')
+    subject_id = data.get('subject_id')
+
+    if not image_data or not image_data.startswith('data:image/'):
+        return jsonify({'success': False, 'message': 'No valid image provided'}), 400
+
+    try:
+        header, encoded = image_data.split(';base64,')
+        img_bytes = base64.b64decode(encoded)
+        pil_img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+
+        # Fast resize for real-time latency optimization
+        max_dim = 640
+        width, height = pil_img.size
+        scale = 1.0
+        if max(width, height) > max_dim:
+            scale = max_dim / float(max(width, height))
+            new_w = int(width * scale)
+            new_h = int(height * scale)
+            pil_img = pil_img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+
+        img_np = np.array(pil_img)
+
+        # Detect face bounding boxes
+        face_locations = face_recognition.face_locations(img_np, model="hog")
+        if not face_locations:
+            return jsonify({
+                'success': True,
+                'total_faces': 0,
+                'faces': [],
+                'img_width': width,
+                'img_height': height
+            })
+
+        # Calculate face encodings
+        face_encodings = face_recognition.face_encodings(img_np, face_locations)
+
+        # Filter target students based on provided class/subject or logged-in scope
+        target_students = []
+        if class_id and str(class_id).isdigit():
+            target_students = Student.query.filter_by(class_id=int(class_id)).all()
+        elif subject_id and str(subject_id).isdigit():
+            sub = Subject.query.get(int(subject_id))
+            if sub and sub.class_id:
+                target_students = Student.query.filter_by(class_id=sub.class_id).all()
+        else:
+            if current_user.role == 'teacher' and hasattr(current_user, 'teacher_profile') and current_user.teacher_profile:
+                t_sub_classes = [s.class_id for s in current_user.teacher_profile.subjects if s.class_id]
+                target_students = Student.query.filter(Student.class_id.in_(t_sub_classes)).all() if t_sub_classes else []
+            else:
+                admin_classes = [c.id for c in get_admin_classes()]
+                target_students = Student.query.filter(Student.class_id.in_(admin_classes)).all() if admin_classes else Student.query.all()
+
+        valid_students = [s for s in target_students if s.face_encoding is not None]
+        known_encodings = [np.frombuffer(s.face_encoding, dtype=np.float64) for s in valid_students]
+
+        detected_faces = []
+        for loc, encoding in zip(face_locations, face_encodings):
+            top, right, bottom, left = loc
+            # Scale coordinates back up to full video size
+            if scale != 1.0:
+                top = int(top / scale)
+                right = int(right / scale)
+                bottom = int(bottom / scale)
+                left = int(left / scale)
+
+            matched_name = "Unknown Face"
+            matched_roll = ""
+            match_found = False
+            confidence_str = "0%"
+
+            if known_encodings:
+                distances = face_recognition.face_distance(known_encodings, encoding)
+                if len(distances) > 0:
+                    best_match_idx = np.argmin(distances)
+                    best_dist = distances[best_match_idx]
+                    if best_dist < 0.6:  # tolerance threshold
+                        matched_student = valid_students[best_match_idx]
+                        matched_name = matched_student.name
+                        matched_roll = matched_student.roll_no
+                        match_found = True
+                        confidence = max(0, min(100, int((1.0 - best_dist) * 100)))
+                        confidence_str = f"{confidence}%"
+
+            detected_faces.append({
+                'box': {'top': top, 'right': right, 'bottom': bottom, 'left': left},
+                'name': matched_name,
+                'roll_no': matched_roll,
+                'matched': match_found,
+                'confidence': confidence_str
+            })
+
+        return jsonify({
+            'success': True,
+            'total_faces': len(detected_faces),
+            'faces': detected_faces,
+            'img_width': width,
+            'img_height': height
+        })
+
+    except Exception as e:
+        print(f"Error in api_live_detect: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
 @main_bp.route('/delete_todays_attendance', methods=['POST'])
 @login_required
 @admin_required
