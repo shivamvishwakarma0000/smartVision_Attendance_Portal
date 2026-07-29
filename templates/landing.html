@@ -12,57 +12,91 @@
         </button>
     </div>
     
-    <!-- Left Side: Brand Visual Grid (Visible on large screens) -->
-    <div class="col-lg-7 d-none d-lg-flex flex-column justify-content-center p-5 text-white position-relative" 
-         style="background-color: var(--sidebar-bg); background-image: radial-gradient(at 20% 20%, rgba(99, 102, 241, 0.25) 0px, transparent 40%), radial-gradient(at 80% 80%, rgba(236, 72, 153, 0.1) 0px, transparent 40%);">
+    <!-- Left Side: Brand Visual Grid (Futuristic AI Scanner Showcase with Image) -->
+    <div class="col-lg-7 d-none d-lg-flex flex-column justify-content-between p-4 p-xl-5 text-white position-relative overflow-hidden" 
+         style="background: linear-gradient(135deg, #0b0f19 0%, #15192e 50%, #1e1b4b 100%);">
         
-        <div class="position-absolute d-flex align-items-center gap-2.5" style="top: 40px; left: 45px; z-index: 10;">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SmartVision Logo" class="rounded border border-white-50 shadow-sm" style="width: 44px; height: 44px; object-fit: cover;">
-            <h4 class="fw-extrabold m-0" style="letter-spacing: -0.5px; background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800;">
-                SmartVision
-            </h4>
+        <!-- Ambient Mesh Glow Backdrops -->
+        <div class="position-absolute" style="top: -100px; left: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(99,102,241,0.35) 0%, rgba(0,0,0,0) 70%); filter: blur(60px); pointer-events: none;"></div>
+        <div class="position-absolute" style="bottom: -100px; right: -100px; width: 450px; height: 450px; background: radial-gradient(circle, rgba(56,189,248,0.25) 0%, rgba(0,0,0,0) 70%); filter: blur(60px); pointer-events: none;"></div>
+
+        <!-- Top Header / Logo -->
+        <div class="d-flex align-items-center justify-content-between position-relative z-10">
+            <div class="d-flex align-items-center gap-3">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SmartVision Logo" class="rounded-3 border border-white-50 shadow-lg" style="width: 46px; height: 46px; object-fit: cover;">
+                <div>
+                    <h4 class="fw-extrabold m-0" style="letter-spacing: -0.5px; background: linear-gradient(135deg, #ffffff 0%, #c7d2fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 1.45rem;">
+                        SmartVision
+                    </h4>
+                    <span class="fs-9 text-indigo-300 tracking-wider text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 1px;">Smart Attendance Portal</span>
+                </div>
+            </div>
+            <span class="badge bg-white bg-opacity-10 text-white px-3 py-1.5 rounded-pill border border-white-50 fs-8 fw-normal">
+                <i class="fa-solid fa-bolt text-warning me-1.5"></i> AI Facial Scanner v2.5
+            </span>
         </div>
 
-        <div class="my-auto position-relative" style="z-index: 10; max-width: 580px; animation: slide-right 0.8s cubic-bezier(0.4, 0, 0.2, 1);">
-            <span class="fs-1 d-block mb-3 text-indigo-400" style="font-size: 3.5rem !important;"><i class="fa-solid fa-face-viewfinder"></i></span>
-            <h1 class="fw-extrabold display-4 mb-3" style="font-weight: 800; letter-spacing: -1.5px; line-height: 1.1;">
-                AI-Powered <span style="background: linear-gradient(135deg, #a5b4fc 0%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Facial Recognition</span> Attendance
-            </h1>
-            <p class="text-white-50 fs-5 mb-4" style="line-height: 1.6; font-weight: 400;">
-                Automate classroom check-ins, eliminate paperwork, and access real-time analytics in a single secure platform.
-            </p>
+        <!-- Center Showcase: Clean Text & Tech Badges (No Image) -->
+        <div class="my-auto position-relative py-4 text-start" style="z-index: 10; max-width: 580px; animation: slide-right 0.8s cubic-bezier(0.4, 0, 0.2, 1);">
             
-            <div class="row g-4 mt-2">
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-primary bg-opacity-20 border border-primary border-opacity-30 mb-4">
+                <span class="spinner-grow spinner-grow-sm text-info" role="status"></span>
+                <span class="fs-8 fw-semibold text-indigo-200">AI-POWERED FACIAL RECOGNITION</span>
+            </div>
+
+            <h1 class="fw-extrabold mb-3" style="font-weight: 800; letter-spacing: -1.2px; line-height: 1.15; font-size: 3rem;">
+                Smart Classroom <span style="background: linear-gradient(135deg, #a5b4fc 0%, #38bdf8 50%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Attendance System</span>
+            </h1>
+            
+            <p class="text-white-50 mb-4 fs-5" style="line-height: 1.6; font-weight: 400;">
+                Automate classroom check-ins, eliminate proxy attendance, run instant multi-face group scans, and access real-time analytics for students & faculty.
+            </p>
+
+            <!-- Clean Feature Grid Cards -->
+            <div class="row g-3 mb-4">
                 <div class="col-6">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="fs-5 text-success"><i class="fa-solid fa-circle-check"></i></span>
-                        <span class="text-white-50">99.8% Scanner Accuracy</span>
+                    <div class="p-3 rounded-4 border border-white-50 bg-white bg-opacity-10 backdrop-blur d-flex align-items-center gap-3" style="backdrop-filter: blur(12px);">
+                        <div class="rounded-circle bg-success bg-opacity-20 text-success p-2.5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; font-size: 1.1rem;">
+                            <i class="fa-solid fa-shield-check"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-white mb-0 fs-7">99.8% Accuracy</h6>
+                            <span class="text-white-50 fs-8">Facial Landmark Mapping</span>
+                        </div>
                     </div>
                 </div>
+
                 <div class="col-6">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="fs-5 text-success"><i class="fa-solid fa-circle-check"></i></span>
-                        <span class="text-white-50">Instant Side-by-Side Approvals</span>
+                    <div class="p-3 rounded-4 border border-white-50 bg-white bg-opacity-10 backdrop-blur d-flex align-items-center gap-3" style="backdrop-filter: blur(12px);">
+                        <div class="rounded-circle bg-info bg-opacity-20 text-info p-2.5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; font-size: 1.1rem;">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-white mb-0 fs-7">&lt; 0.3s Speed</h6>
+                            <span class="text-white-50 fs-8">Instant Multi-Face Scan</span>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <div class="d-flex align-items-center gap-4 text-white-50 fs-8">
+                <span><i class="fa-solid fa-circle-check text-success me-1.5"></i>Student & Teacher Portals</span>
+                <span><i class="fa-solid fa-circle-check text-success me-1.5"></i>Admin Approvals Queue</span>
+            </div>
         </div>
 
-        <!-- High-Tech Camera Mock Overlay -->
-        <div class="position-absolute" style="bottom: 40px; right: 40px; opacity: 0.15; z-index: 5;">
-            <svg width="220" height="220" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-                <path d="M2 12h20"></path>
-            </svg>
+        <!-- Bottom Product Tagline (No Names / No University) -->
+        <div class="d-flex align-items-center justify-content-between position-relative z-10 pt-3 border-top border-white border-opacity-10 fs-8 text-white-50">
+            <span><i class="fa-solid fa-lock text-indigo-400 me-1.5"></i> Encrypted Facial Vector Security</span>
+            <span><i class="fa-solid fa-server text-indigo-400 me-1.5"></i> Automated Attendance Engine</span>
         </div>
     </div>
 
-    <!-- Right Side: Unified Glass Card (Centering Container) -->
-    <div class="col-lg-5 col-12 d-flex flex-column p-3 p-md-4 bg-light auth-scroll-container">
+    <!-- Right Side: Unified Glass Card (Exact 15% Top, 20% Bottom, 65% Cover Height) -->
+    <div class="col-lg-5 col-12 d-flex flex-column justify-content-start align-items-center bg-light auth-scroll-container">
         
-        <div class="card p-3 p-md-4 shadow-lg border-0 w-100 fade-in" 
-             style="max-width: 440px; background: var(--bg-card); backdrop-filter: blur(20px); border-radius: 20px; border: 1px solid var(--border-card); margin: 2rem auto;">
+        <div class="card auth-card p-4 p-md-4 shadow-lg border-0 w-100 fade-in" 
+             style="background: var(--bg-card); backdrop-filter: blur(24px); border-radius: 24px; border: 1px solid var(--border-card);">
             
             <!-- Dynamic State Panels -->
  
@@ -77,6 +111,9 @@
                 <div class="d-grid gap-2 mt-3">
                     <button onclick="switchState('login', 'student')" class="btn btn-primary py-2.5 d-flex align-items-center justify-content-center gap-2 shadow">
                         <i class="fa-solid fa-graduation-cap"></i> Student Portal
+                    </button>
+                    <button onclick="switchState('login', 'teacher')" class="btn btn-info text-white py-2.5 d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-chalkboard-user"></i> Teacher Portal
                     </button>
                     <button onclick="switchState('login', 'admin')" class="btn btn-secondary py-2.5 d-flex align-items-center justify-content-center gap-2">
                         <i class="fa-solid fa-user-shield"></i> Administrator Portal
@@ -99,9 +136,13 @@
                     <!-- Role Tab Selector -->
                     <div class="mb-3.5 d-flex justify-content-center bg-light p-1 rounded-3 border">
                         <input type="radio" class="btn-check" name="login_role" id="login_role_student" value="student" checked onclick="toggleLoginRole('student')">
-                        <label class="btn btn-sm btn-outline-primary px-3 py-2 w-50" for="login_role_student"><i class="fa-solid fa-graduation-cap me-1"></i> Student</label>
+                        <label class="btn btn-sm btn-outline-primary px-2 py-2 w-33" for="login_role_student"><i class="fa-solid fa-graduation-cap me-1"></i> Student</label>
+                        
+                        <input type="radio" class="btn-check" name="login_role" id="login_role_teacher" value="teacher" onclick="toggleLoginRole('teacher')">
+                        <label class="btn btn-sm btn-outline-primary px-2 py-2 w-33" for="login_role_teacher"><i class="fa-solid fa-chalkboard-user me-1"></i> Teacher</label>
+
                         <input type="radio" class="btn-check" name="login_role" id="login_role_admin" value="admin" onclick="toggleLoginRole('admin')">
-                        <label class="btn btn-sm btn-outline-primary px-3 py-2 w-50" for="login_role_admin"><i class="fa-solid fa-user-shield me-1"></i> Admin</label>
+                        <label class="btn btn-sm btn-outline-primary px-2 py-2 w-33" for="login_role_admin"><i class="fa-solid fa-user-shield me-1"></i> Admin</label>
                     </div>
 
                     <!-- Email Input -->
@@ -151,11 +192,18 @@
             <div id="signup-panel" class="panel-state" style="display: none;">
                 <div class="text-center mb-2">
                     <h4 class="fw-extrabold text-primary mb-1" style="font-weight: 800; font-size: 1.5rem;">Create Account</h4>
-                    <p class="text-muted mb-0 fs-7">Register a student account</p>
+                    <p class="text-muted mb-0 fs-7">Register as Student or Teacher</p>
                 </div>
 
                 <form method="POST" action="{{ url_for('auth.signup') }}" enctype="multipart/form-data" id="signup-form" onsubmit="window.stopCamera('signup')">
-                    <input type="hidden" name="signup_role" value="student">
+                    <!-- Signup Role Selector -->
+                    <div class="mb-3 d-flex justify-content-center bg-light p-1 rounded-3 border">
+                        <input type="radio" class="btn-check" name="signup_role" id="signup_role_student" value="student" checked onclick="toggleSignupRole('student')">
+                        <label class="btn btn-sm btn-outline-primary px-3 py-1.5 w-50" for="signup_role_student"><i class="fa-solid fa-graduation-cap me-1"></i> Student</label>
+                        
+                        <input type="radio" class="btn-check" name="signup_role" id="signup_role_teacher" value="teacher" onclick="toggleSignupRole('teacher')">
+                        <label class="btn btn-sm btn-outline-primary px-3 py-1.5 w-50" for="signup_role_teacher"><i class="fa-solid fa-chalkboard-user me-1"></i> Teacher</label>
+                    </div>
 
                     <!-- Common Fields -->
                     <div class="mb-2">
@@ -171,16 +219,27 @@
                         <input type="password" class="form-control py-2" id="su_password" name="password" placeholder="Min. 8 characters" required minlength="8" style="font-size: 0.85rem;">
                     </div>
 
-                    <!-- Student-Only Fields -->
+                    <!-- Teacher-Only Fields -->
+                    <div id="teacher_signup_fields" class="p-2 rounded-3 border mb-2 d-none" style="background: rgba(14, 165, 233, 0.05); border-color: rgba(14, 165, 233, 0.2) !important; font-size: 0.85rem;">
+                        <h6 class="fw-bold text-info mb-2" style="font-size: 0.82rem;">
+                            <i class="fa-solid fa-id-badge me-1"></i>Teacher Details
+                        </h6>
+                        <div class="mb-2">
+                            <label for="su_emp_id" class="form-label fw-semibold mb-0.5" style="font-size: 0.75rem;">Employee ID <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control py-1" id="su_emp_id" name="emp_id" placeholder="EMP-1024" style="font-size: 0.8rem;">
+                        </div>
+                    </div>
+
+                    <!-- Student & Shared Fields -->
                     <div id="student_signup_fields" class="p-2 rounded-3 border mb-2" style="background: rgba(99,102,241,0.04); border-color: rgba(99,102,241,0.15) !important; font-size: 0.85rem;">
-                        <h6 class="fw-bold text-primary mb-2" style="font-size: 0.82rem;">
+                        <h6 class="fw-bold text-primary mb-2" style="font-size: 0.82rem;" id="photo-section-header">
                             <i class="fa-solid fa-id-card me-1"></i>Student Information
                         </h6>
                         <div class="mb-2">
                             <label for="su_mobile" class="form-label fw-semibold mb-0.5" style="font-size: 0.75rem;">Mobile Number</label>
                             <input type="tel" class="form-control py-1" id="su_mobile" name="mobile" placeholder="+91 9876543210" style="font-size: 0.8rem;">
                         </div>
-                        <div class="row g-2 mb-2">
+                        <div class="row g-2 mb-2" id="roll_enroll_container">
                             <div class="col-6">
                                 <label for="su_roll_no" class="form-label fw-semibold mb-0.5" style="font-size: 0.75rem;">Roll No <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control py-1" id="su_roll_no" name="roll_no" placeholder="CS2026-04" required style="font-size: 0.8rem;">
@@ -227,8 +286,8 @@
                                 </div>
                             </div>
 
-                            <div class="text-muted mt-1" style="font-size: 0.7rem;">
-                                <i class="fa-solid fa-circle-info me-1 text-primary"></i>You can add your photo later. Admin will assign your class after registration.
+                            <div class="text-muted mt-1" style="font-size: 0.7rem;" id="photo-help-text">
+                                <i class="fa-solid fa-circle-info me-1 text-primary"></i>Registration photo will be verified by Administrator upon approval.
                             </div>
                         </div>
                     </div>
@@ -461,33 +520,44 @@ function toggleLoginRole(role) {
     const title = document.getElementById('login-title');
     if (role === 'student') {
         title.innerHTML = '<i class="fa-solid fa-graduation-cap me-2"></i> Student Sign In';
+    } else if (role === 'teacher') {
+        title.innerHTML = '<i class="fa-solid fa-chalkboard-user me-2"></i> Teacher Sign In';
     } else {
         title.innerHTML = '<i class="fa-solid fa-user-shield me-2"></i> Administrator Sign In';
     }
 }
 
-// Signup dynamic fields toggles (admin vs student)
+// Signup dynamic fields toggles (student vs teacher)
 function toggleSignupFields(role) {
     const studentFields = document.getElementById('student_signup_fields');
-    const adminNote = document.getElementById('admin_signup_note');
+    const teacherFields = document.getElementById('teacher_signup_fields');
+    const rollEnrollContainer = document.getElementById('roll_enroll_container');
+    const photoHeader = document.getElementById('photo-section-header');
     const rollNo = document.getElementById('su_roll_no');
     const enrollmentNo = document.getElementById('su_enrollment_no');
+    const empId = document.getElementById('su_emp_id');
 
-    if (role === 'student') {
-        studentFields.style.display = 'block';
-        adminNote.style.display = 'none';
-        if (rollNo) rollNo.required = true;
-        if (enrollmentNo) enrollmentNo.required = true;
-    } else {
-        // Admin — hide student section entirely
-        studentFields.style.display = 'none';
-        adminNote.style.display = 'block';
+    if (role === 'teacher') {
+        if (teacherFields) teacherFields.classList.remove('d-none');
+        if (studentFields) studentFields.classList.remove('d-none');
+        if (rollEnrollContainer) rollEnrollContainer.classList.add('d-none');
+        if (photoHeader) photoHeader.innerHTML = '<i class="fa-solid fa-camera me-1"></i>Teacher Photo Registration';
         if (rollNo) rollNo.required = false;
         if (enrollmentNo) enrollmentNo.required = false;
+        if (empId) empId.required = true;
+    } else {
+        // Student
+        if (teacherFields) teacherFields.classList.add('d-none');
+        if (studentFields) studentFields.classList.remove('d-none');
+        if (rollEnrollContainer) rollEnrollContainer.classList.remove('d-none');
+        if (photoHeader) photoHeader.innerHTML = '<i class="fa-solid fa-id-card me-1"></i>Student Information';
+        if (rollNo) rollNo.required = true;
+        if (enrollmentNo) enrollmentNo.required = true;
+        if (empId) empId.required = false;
     }
 }
 
-// Alias for onclick attributes in HTML (backwards compat)
+// Alias for onclick attributes in HTML
 function toggleSignupRole(role) { toggleSignupFields(role); }
 
 // Google completion dynamic fields toggles
@@ -548,26 +618,57 @@ document.addEventListener('DOMContentLoaded', function() {
     0% { transform: translateX(-30px); opacity: 0; }
     100% { transform: translateX(0); opacity: 1; }
 }
-@media (min-width: 992px) {
-    body {
-        overflow: hidden !important;
-        height: 100vh !important;
-    }
-}
-#student_signup_fields::-webkit-scrollbar,
-#gcomplete_fields::-webkit-scrollbar {
-    width: 6px;
-}
-#student_signup_fields::-webkit-scrollbar-thumb,
-#gcomplete_fields::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
+
+.auth-scroll-container {
+    overflow-y: hidden !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    padding-top: 15vh !important;
+    padding-bottom: 20vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
 }
 
-/* Compact layout on smaller viewport heights to guarantee no scrolling/cutoff */
+.auth-card {
+    height: 65vh !important;
+    max-height: 65vh !important;
+    width: 100% !important;
+    max-width: 460px !important;
+    overflow-y: auto !important;
+    scroll-behavior: smooth;
+    padding: 2.25rem 2rem !important;
+    border-radius: 24px !important;
+    margin: 0 !important;
+}
+
+.auth-card::-webkit-scrollbar {
+    width: 6px;
+}
+
+.auth-card::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.auth-card::-webkit-scrollbar-thumb {
+    background-color: rgba(99, 102, 241, 0.3);
+    border-radius: 10px;
+}
+
+.auth-card::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(99, 102, 241, 0.6);
+}
+
+#student_signup_fields, #teacher_signup_fields, #gcomplete_fields {
+    overflow: visible;
+}
+
+/* Compact layout for mobile & small screens */
 @media (max-height: 800px) {
-    .card {
-        padding: 1rem 1.5rem !important;
+    .auth-card {
+        padding: 1.25rem 1.5rem !important;
         border-radius: 16px !important;
     }
     .panel-state h3, .panel-state h4 {
@@ -590,40 +691,9 @@ document.addEventListener('DOMContentLoaded', function() {
         padding: 0.45rem 1rem !important;
         font-size: 0.85rem !important;
     }
-    #student_signup_fields, #gcomplete_fields {
-        padding: 0.5rem !important;
+    #student_signup_fields, #teacher_signup_fields, #gcomplete_fields {
+        padding: 0.6rem !important;
         margin-bottom: 0.75rem !important;
-    }
-    .mb-3 {
-        margin-bottom: 0.75rem !important;
-    }
-    .mb-4 {
-        margin-bottom: 0.75rem !important;
-    }
-    .mt-4 {
-        margin-top: 0.75rem !important;
-    }
-    .mt-5 {
-        margin-top: 1rem !important;
-    }
-}
-@media (max-height: 650px) {
-    .card {
-        padding: 0.75rem 1.25rem !important;
-    }
-    .panel-state h3, .panel-state h4 {
-        font-size: 1.15rem !important;
-    }
-    .form-control, .form-select {
-        padding: 0.35rem 0.6rem !important;
-        font-size: 0.75rem !important;
-    }
-    .btn {
-        padding: 0.4rem 0.8rem !important;
-        font-size: 0.8rem !important;
-    }
-    #student_signup_fields, #gcomplete_fields {
-        max-height: 80px !important;
     }
 }
 </style>

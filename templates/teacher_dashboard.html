@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block title %}Teacher Portal | Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Welcome Banner with Faculty Image -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm bg-gradient-primary text-white overflow-hidden rounded-4" style="background: linear-gradient(135deg, #4f46e5 0%, #2563eb 50%, #0d9488 100%);">
+                <div class="card-body p-4 position-relative">
+                    <div class="row align-items-center position-relative z-1">
+                        <!-- Faculty Image & Profile Info -->
+                        <div class="col-md-8 d-flex align-items-center flex-column flex-sm-row text-center text-sm-start mb-3 mb-md-0">
+                            <div class="position-relative me-sm-3.5 mb-2.5 mb-sm-0">
+                                {% if teacher.image_filename %}
+                                <img src="{{ url_for('main.uploaded_face', filename=teacher.image_filename) }}" 
+                                     class="rounded-circle shadow border border-2 border-white" 
+                                     style="width: 85px; height: 85px; object-fit: cover;">
+                                {% else %}
+                                <div class="rounded-circle bg-white text-primary border border-2 border-white shadow d-flex align-items-center justify-content-center mx-auto fw-bold" 
+                                     style="width: 85px; height: 85px; font-size: 2.2rem;">
+                                    {{ teacher.name[0] }}
+                                </div>
+                                {% endif %}
+                                <span class="position-absolute bottom-0 end-0 badge rounded-pill bg-success border border-2 border-white px-1.5 py-0.5 fs-9 shadow-sm" title="Active Faculty Profile">
+                                    <i class="fas fa-check-circle me-1"></i>Verified
+                                </span>
+                            </div>
+                            <div>
+                                <div class="d-flex align-items-center justify-content-center justify-content-sm-start gap-2 mb-1.5">
+                                    <span class="badge bg-white bg-opacity-25 text-white px-2.5 py-1 rounded-pill fw-semibold fs-8">
+                                        <i class="fas fa-chalkboard-user me-1"></i> Faculty Portal
+                                    </span>
+                                    {% if teacher.emp_id %}
+                                    <span class="badge bg-warning text-dark px-2.5 py-1 rounded-pill fw-bold fs-8">
+                                        <i class="fas fa-id-badge me-1"></i>{{ teacher.emp_id }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <h3 class="fw-bold mb-1" style="font-size: 1.5rem;">Welcome Back, {{ teacher.name }}!</h3>
+                                
+                                <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-sm-start gap-3 fs-8 text-white-75">
+                                    {% if teacher.email %}<span><i class="fas fa-envelope me-1 opacity-75"></i>{{ teacher.email }}</span>{% endif %}
+                                    {% if teacher.mobile %}<span><i class="fas fa-phone me-1 opacity-75"></i>{{ teacher.mobile }}</span>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Action Button -->
+                        <div class="col-md-4 text-center text-md-end">
+                            <a href="{{ url_for('teacher.take_attendance') }}" class="btn btn-light px-3.5 py-2.5 rounded-3 shadow-sm fw-bold text-primary fs-8">
+                                <i class="fas fa-camera text-primary me-1.5"></i>Take Class Attendance
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards (Compact & Comfortable Typography) -->
+    <div class="row g-3 mb-4">
+        <!-- Card 1: Assigned Subjects -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-3 h-100 p-2.5 bg-white">
+                <div class="card-body p-2 d-flex align-items-center">
+                    <div class="rounded-3 p-2.5 me-3 bg-primary bg-opacity-10 text-primary fs-4 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted fs-8 text-uppercase tracking-wider fw-semibold d-block mb-0.5">Assigned Subjects</span>
+                        <div class="d-flex align-items-baseline">
+                            <h4 class="fw-bold mb-0 text-dark me-2">{{ subjects|length }}</h4>
+                            <span class="fs-8 text-muted">Subject Register{% if subjects|length != 1 %}s{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Directed Classes -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-3 h-100 p-2.5 bg-white">
+                <div class="card-body p-2 d-flex align-items-center">
+                    <div class="rounded-3 p-2.5 me-3 bg-success bg-opacity-10 text-success fs-4 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="fas fa-chalkboard-user"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted fs-8 text-uppercase tracking-wider fw-semibold d-block mb-0.5">Directed Classes</span>
+                        <div class="d-flex align-items-baseline">
+                            <h4 class="fw-bold mb-0 text-dark me-2">{{ directed_classes|length }}</h4>
+                            <span class="fs-8 text-muted">As Class Teacher</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Today's Date -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-3 h-100 p-2.5 bg-white">
+                <div class="card-body p-2 d-flex align-items-center">
+                    <div class="rounded-3 p-2.5 me-3 bg-info bg-opacity-10 text-info fs-4 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted fs-8 text-uppercase tracking-wider fw-semibold d-block mb-0.5">Today's Date</span>
+                        <h4 class="fw-bold mb-0 text-dark" style="font-size: 1.15rem;">{{ today }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subject & Class Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Left: Subjects & Attendance Summary Table -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-3.5 px-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0 text-dark fs-7"><i class="fas fa-layer-group text-primary me-2"></i>My Subjects & Attendance Summary</h6>
+                    <a href="{{ url_for('teacher.view_reports') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fs-8 fw-semibold">View All Reports</a>
+                </div>
+                <div class="card-body px-4 py-3">
+                    {% if subject_stats %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 fs-8">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Subject Name</th>
+                                    <th>Assigned Class</th>
+                                    <th>Enrolled Students</th>
+                                    <th>Sessions Held</th>
+                                    <th>Today's Present</th>
+                                    <th>Average %</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in subject_stats %}
+                                <tr>
+                                    <td class="fw-bold text-dark"><i class="fas fa-book text-primary me-1.5"></i>{{ stat.subject.name }}</td>
+                                    <td><span class="badge bg-secondary bg-opacity-10 text-secondary px-2.5 py-1 rounded-pill fw-semibold fs-8">{{ stat.class_name }}</span></td>
+                                    <td><span class="fw-semibold text-dark"><i class="fas fa-user-graduate me-1 text-muted"></i>{{ stat.total_students }}</span></td>
+                                    <td>{{ stat.total_sessions }}</td>
+                                    <td>
+                                        <span class="badge bg-success bg-opacity-10 text-success px-2.5 py-1 rounded-pill fw-bold fs-8">
+                                            {{ stat.today_present }} / {{ stat.total_students }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="me-2 fw-bold text-dark">{{ stat.avg_attendance }}%</span>
+                                            <div class="progress flex-grow-1" style="height: 6px; min-width: 50px;">
+                                                <div class="progress-bar {% if stat.avg_attendance >= 75 %}bg-success{% elif stat.avg_attendance >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                     role="progressbar" style="width: {{ stat.avg_attendance }}%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ url_for('teacher.take_attendance') }}" class="btn btn-xs btn-primary rounded-2 px-2.5 py-1 fw-bold fs-8">
+                                            <i class="fas fa-camera me-1"></i>Mark
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-book-open text-muted fs-3 mb-2"></i>
+                        <h6 class="text-muted fw-bold fs-8 mb-1">No subjects currently assigned.</h6>
+                        <p class="text-muted fs-8 mb-0">Please contact your department administrator to assign subjects to your profile.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Class Directorship Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-3.5 px-4 pb-0">
+                    <h6 class="fw-bold mb-0 text-dark fs-7"><i class="fas fa-user-shield text-primary me-2"></i>Class Directorship</h6>
+                </div>
+                <div class="card-body px-4 py-3">
+                    {% if directed_classes %}
+                    {% for c in directed_classes %}
+                    <div class="p-3 bg-light rounded-3 mb-2.5 border border-primary border-opacity-10">
+                        <div class="d-flex justify-content-between align-items-center mb-1.5">
+                            <h6 class="fw-bold text-dark mb-0 fs-8"><i class="fas fa-graduation-cap text-primary me-1.5"></i>{{ c.name }}</h6>
+                            <span class="badge bg-primary rounded-pill px-2 py-0.5 fs-8">Class Teacher</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center text-muted fs-8">
+                            <span><i class="fas fa-users text-primary me-1"></i>Enrolled Students:</span>
+                            <strong class="text-dark">{{ c.students|length }} Students</strong>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <div class="rounded-circle bg-light text-primary d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 48px; height: 48px;">
+                            <i class="fas fa-school fs-4"></i>
+                        </div>
+                        <p class="fs-8 mb-1 fw-semibold text-dark">No Class Directorship Assigned</p>
+                        <p class="fs-8 text-muted mb-0" style="line-height: 1.4;">You are not designated as a Class Teacher for any specific class branch. Administrator assigns Class Directorship when managing class registers.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Attendance Logs -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-3.5 px-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0 text-dark fs-7"><i class="fas fa-history text-primary me-2"></i>Recent Class Attendance Activity</h6>
+                </div>
+                <div class="card-body px-4 py-3">
+                    {% if recent_records %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 fs-8">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Student Name</th>
+                                    <th>Roll Number</th>
+                                    <th>Subject</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in recent_records %}
+                                <tr>
+                                    <td><i class="fas fa-calendar me-1 text-muted"></i>{{ record.date.strftime('%Y-%m-%d') }}</td>
+                                    <td><i class="fas fa-clock me-1 text-muted"></i>{{ record.time_marked or 'N/A' }}</td>
+                                    <td class="fw-bold text-dark">{{ record.student.name if record.student else 'N/A' }}</td>
+                                    <td><span class="badge bg-light text-dark border px-2 py-1 fs-8">{{ record.student.roll_no if record.student else 'N/A' }}</span></td>
+                                    <td><span class="badge bg-info bg-opacity-10 text-info px-2.5 py-1 rounded-pill fw-semibold fs-8">{{ record.subject.name if record.subject else 'N/A' }}</span></td>
+                                    <td><span class="badge bg-success px-2.5 py-1 rounded-pill fs-8"><i class="fas fa-check me-1"></i>Present</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted py-4 text-center mb-0 fs-8">No recent attendance records found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

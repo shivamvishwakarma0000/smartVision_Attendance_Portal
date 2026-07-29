@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Teacher Portal | Take Attendance{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h3 class="fw-bold mb-1 text-dark"><i class="fas fa-camera text-primary me-2"></i>Teacher Multi-Face Attendance Capture</h3>
+                        <p class="text-muted mb-0">Select your class & subject, upload group photos, or capture multiple live camera snaps to mark attendance instantly.</p>
+                    </div>
+                    <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-outline-secondary rounded-3">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if results %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4 border-start border-success border-4">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h4 class="fw-bold text-success mb-0"><i class="fas fa-check-circle me-2"></i>Attendance Scan Complete!</h4>
+                        <span class="badge bg-success fs-6 px-3 py-2 rounded-pill">{{ results.present_students|length }} Marked Present</span>
+                    </div>
+                    <p class="text-muted">Scanned <strong>{{ results.total_faces }}</strong> face(s) in <strong>{{ results.subject_name }}</strong>.</p>
+
+                    {% if results.present_students %}
+                    <div class="row g-3 mt-2">
+                        {% for student in results.present_students %}
+                        <div class="col-md-4 col-lg-3">
+                            <div class="p-3 bg-light rounded-3 d-flex align-items-center">
+                                <div class="avatar-circle bg-primary text-white me-3 fw-bold rounded-circle d-flex align-items-center justify-content-center" style="width:40px; height:40px;">
+                                    {{ student.name[0] }}
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark">{{ student.name }}</h6>
+                                    <span class="text-muted small">Roll: {{ student.roll_no }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-upload text-primary me-2"></i>Upload / Capture Group Photo</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data" id="teacherAttendanceForm">
+                        <!-- 1. Select Subject -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark">Select Assigned Subject</label>
+                            <select name="subject_id" id="teacher_subject_id" class="form-select form-select-lg rounded-3" required>
+                                <option value="" disabled selected>-- Select Subject --</option>
+                                {% for sub in subjects %}
+                                <option value="{{ sub.id }}">{{ sub.name }} (Class: {{ sub.class_assigned.name if sub.class_assigned else 'N/A' }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Option 1: Upload Group Photo(s) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark"><i class="fas fa-images text-primary me-1"></i> Option 1: Upload Group Photo File(s)</label>
+                            <input type="file" name="group_photo" class="form-control form-control-lg rounded-3" multiple accept="image/*">
+                            <small class="text-muted">Hold Ctrl/Cmd to select multiple photo files at once.</small>
+                        </div>
+
+                        <!-- Option 2: Live Camera Capture (Multiple Snaps) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark"><i class="fas fa-video text-primary me-1"></i> Option 2: Live Camera Multi-Snap Capture</label>
+                            <div class="bg-dark rounded-3 overflow-hidden text-center position-relative mb-2" style="min-height: 240px;">
+                                <video id="webcam" autoplay playsinline style="width: 100%; height: 240px; object-fit: cover; transform: scaleX(-1); display: none;"></video>
+                                <div id="camera-placeholder" class="py-5 text-white-50">
+                                    <i class="fas fa-video fs-1 mb-2"></i>
+                                    <p class="mb-0">Click 'Start Camera' below to open live webcam</p>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 mb-2">
+                                <button type="button" id="start-cam-btn" class="btn btn-outline-primary rounded-3 flex-grow-1">
+                                    <i class="fas fa-camera me-1"></i>Start Camera
+                                </button>
+                                <button type="button" id="snap-btn" class="btn btn-success rounded-3 flex-grow-1" disabled>
+                                    <i class="fas fa-dot-circle me-1"></i>Capture Snap
+                                </button>
+                            </div>
+                            
+                            <!-- Captured Snaps Counter & Previews -->
+                            <div class="text-start mb-2">
+                                <span class="fw-bold text-dark fs-7">Captured Snaps (<span id="snap-counter">0</span>):</span>
+                            </div>
+                            <div id="captured-previews" class="d-flex flex-wrap gap-2 mb-2"></div>
+                            
+                            <!-- Container for hidden base64 input fields -->
+                            <div id="hidden-snaps-container"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-3 py-3 fw-bold shadow">
+                            <i class="fas fa-bolt me-2"></i>Process Recognition & Mark Attendance
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-calendar-check text-primary me-2"></i>Today's Attendance Logs ({{ today }})</h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if attendance_log %}
+                    {% for sub_name, records in attendance_log.items() %}
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-primary mb-2">{{ sub_name }} ({{ records|length }} Present)</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Roll No</th>
+                                        <th>Time Marked</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for r in records %}
+                                    <tr>
+                                        <td class="fw-bold">{{ r.student.name if r.student else 'N/A' }}</td>
+                                        <td>{{ r.student.roll_no if r.student else 'N/A' }}</td>
+                                        <td><span class="badge bg-success bg-opacity-10 text-success">{{ r.time_marked or 'N/A' }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-clipboard-check text-muted fs-1 mb-3"></i>
+                        <p class="text-muted fw-bold mb-0">No attendance marked yet today for your subjects.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const webcam = document.getElementById('webcam');
+    const placeholder = document.getElementById('camera-placeholder');
+    const startBtn = document.getElementById('start-cam-btn');
+    const snapBtn = document.getElementById('snap-btn');
+    const previews = document.getElementById('captured-previews');
+    const hiddenContainer = document.getElementById('hidden-snaps-container');
+    const counterEl = document.getElementById('snap-counter');
+
+    let stream = null;
+    let snapCount = 0;
+
+    startBtn.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            webcam.srcObject = stream;
+            webcam.style.display = 'block';
+            placeholder.style.display = 'none';
+            snapBtn.disabled = false;
+            startBtn.classList.replace('btn-outline-primary', 'btn-outline-secondary');
+            startBtn.innerHTML = '<i class="fas fa-sync me-1"></i>Camera Active';
+        } catch (err) {
+            alert('Could not access camera: ' + err.message);
+        }
+    });
+
+    snapBtn.addEventListener('click', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = webcam.videoWidth || 640;
+        canvas.height = webcam.videoHeight || 480;
+        const ctx = canvas.getContext('2d');
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(webcam, 0, 0, canvas.width, canvas.height);
+        
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        snapCount++;
+        counterEl.innerText = snapCount;
+
+        // Create Thumbnail Preview
+        const thumbWrapper = document.createElement('div');
+        thumbWrapper.className = 'position-relative d-inline-block';
+        thumbWrapper.innerHTML = `
+            <img src="${dataUrl}" class="rounded border shadow-sm" style="width: 75px; height: 55px; object-fit: cover;">
+            <span class="badge bg-success position-absolute top-0 start-100 translate-middle rounded-circle p-1" style="font-size: 0.6rem;">✓</span>
+        `;
+        previews.appendChild(thumbWrapper);
+
+        // Append hidden base64 input
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'captured_images_base64';
+        hiddenInput.value = dataUrl;
+        hiddenContainer.appendChild(hiddenInput);
+    });
+</script>
+{% endblock %}

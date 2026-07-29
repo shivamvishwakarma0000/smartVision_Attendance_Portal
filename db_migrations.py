@@ -19,9 +19,17 @@ def run_migrations(db_path="smartvision.db"):
         migrations = [
             ("users", "google_id", "VARCHAR(100)"),
             ("users", "mobile", "VARCHAR(20)"),          # NEW: for OTP delivery
+            ("users", "status", "VARCHAR(20) DEFAULT 'Approved'"),
             ("classes", "admin_id", "INTEGER"),
             ("classes", "class_teacher_id", "INTEGER"),
             ("teachers", "admin_id", "INTEGER"),
+            ("teachers", "user_id", "INTEGER"),
+            ("teachers", "email", "VARCHAR(100)"),
+            ("teachers", "emp_id", "VARCHAR(50)"),
+            ("teachers", "mobile", "VARCHAR(20)"),
+            ("teachers", "image_filename", "VARCHAR(255)"),
+            ("teachers", "face_encoding", "BLOB"),
+            ("teachers", "status", "VARCHAR(20) DEFAULT 'Approved'"),
             ("subjects", "admin_id", "INTEGER"),
             ("students", "user_id", "INTEGER"),
             ("students", "mobile", "VARCHAR(20)"),

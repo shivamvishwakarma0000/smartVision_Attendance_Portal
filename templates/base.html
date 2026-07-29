@@ -46,14 +46,14 @@
                     <a href="{{ url_for('main.dashboard') }}" class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
                         <i class="fa-solid fa-chart-simple me-2"></i> Dashboard
                     </a>
-                    <a href="{{ url_for('main.register_student') }}" class="nav-link {% if request.endpoint == 'main.register_student' %}active{% endif %}">
-                        <i class="fa-solid fa-user-plus me-2"></i> Register Student
-                    </a>
                     <a href="{{ url_for('main.take_attendance') }}" class="nav-link {% if request.endpoint == 'main.take_attendance' %}active{% endif %}">
                         <i class="fa-solid fa-camera me-2"></i> Take Attendance
                     </a>
                     <a href="{{ url_for('main.view_reports') }}" class="nav-link {% if request.endpoint == 'main.view_reports' %}active{% endif %}">
                         <i class="fa-solid fa-users me-2"></i> Enrolled Students
+                    </a>
+                    <a href="{{ url_for('main.enrolled_teachers') }}" class="nav-link {% if request.endpoint == 'main.enrolled_teachers' %}active{% endif %}">
+                        <i class="fa-solid fa-chalkboard-user me-2"></i> Enrolled Teachers
                     </a>
                     <a href="{{ url_for('main.retention_risk_report') }}" class="nav-link {% if request.endpoint == 'main.retention_risk_report' %}active{% endif %}">
                         <i class="fa-solid fa-triangle-exclamation me-2 text-warning"></i> Retention Warning
@@ -76,6 +76,17 @@
                             <span class="badge bg-warning text-dark rounded-pill px-2 py-1" style="font-size: 0.75rem; min-width: 22px;">{{ unclassified_students_count }}</span>
                         {% endif %}
                     </a>
+                {% elif current_user.role == 'teacher' %}
+                    <!-- Teacher Navigation -->
+                    <a href="{{ url_for('teacher.dashboard') }}" class="nav-link {% if request.endpoint == 'teacher.dashboard' %}active{% endif %}">
+                        <i class="fa-solid fa-chart-line me-2"></i> Teacher Dashboard
+                    </a>
+                    <a href="{{ url_for('teacher.take_attendance') }}" class="nav-link {% if request.endpoint == 'teacher.take_attendance' %}active{% endif %}">
+                        <i class="fa-solid fa-camera me-2"></i> Take Attendance
+                    </a>
+                    <a href="{{ url_for('teacher.view_reports') }}" class="nav-link {% if request.endpoint == 'teacher.view_reports' %}active{% endif %}">
+                        <i class="fa-solid fa-file-csv me-2"></i> Subject Reports
+                    </a>
                 {% elif current_user.role == 'student' %}
                     <!-- Student Navigation -->
                     <a href="{{ url_for('student.dashboard') }}" class="nav-link {% if request.endpoint == 'student.dashboard' %}active{% endif %}">
@@ -86,6 +97,12 @@
                     </a>
                 {% endif %}
                 
+                {% if current_user.role == 'admin' %}
+                <button type="button" class="nav-link border-0 bg-transparent text-start w-100 text-info" data-bs-toggle="modal" data-bs-target="#changeAdminPasswordModal">
+                    <i class="fa-solid fa-key me-2"></i> Change Master Password
+                </button>
+                {% endif %}
+
                 <a href="{{ url_for('auth.logout') }}" class="nav-link mt-4 text-warning">
                     <i class="fa-solid fa-right-from-bracket me-2 text-warning"></i> Logout
                 </a>
@@ -123,6 +140,40 @@
                     </div>
                 </div>
             </div>
+        {% endif %}
+
+        {% if current_user.is_authenticated and current_user.role == 'admin' %}
+        <!-- Admin Master Password Change Modal -->
+        <div class="modal fade" id="changeAdminPasswordModal" tabindex="-1" aria-labelledby="changeAdminPasswordModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <div class="modal-header bg-primary text-white border-0">
+                        <h5 class="modal-title fw-bold" id="changeAdminPasswordModalLabel"><i class="fa-solid fa-key me-2"></i>Change Master Admin Password</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="{{ url_for('main.admin_change_password') }}">
+                        <div class="modal-body p-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Current Password</label>
+                                <input type="password" name="current_password" class="form-control rounded-3" required placeholder="Enter current master password">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">New Password</label>
+                                <input type="password" name="new_password" class="form-control rounded-3" minlength="6" required placeholder="Min 6 characters">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Confirm New Password</label>
+                                <input type="password" name="confirm_password" class="form-control rounded-3" minlength="6" required placeholder="Re-enter new password">
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 p-4 pt-0">
+                            <button type="button" class="btn btn-light rounded-3" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary rounded-3 px-4 fw-bold">Update Password</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
         {% endif %}
 
         <!-- Flash messages -->

@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Enrolled Teachers - SmartVision{% endblock %}
+{% block page_title %}Academic Faculty Register{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <h4 class="fw-bold text-dark mb-1"><i class="fa-solid fa-chalkboard-user text-primary me-2"></i>Enrolled Faculty Register</h4>
+        <p class="text-muted mb-0 fs-7">View registered faculty members, filter by class/subject, and manage assignments.</p>
+    </div>
+    
+    <!-- Filter Controls Bar -->
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        <form method="GET" action="{{ url_for('main.enrolled_teachers') }}" id="teacherFilterForm" class="d-flex align-items-center gap-2 flex-wrap">
+            <!-- Filter by Class -->
+            <div class="d-flex align-items-center gap-1.5">
+                <label for="classFilter" class="text-muted fs-8 mb-0 fw-semibold text-nowrap"><i class="fa-solid fa-school me-1 text-primary"></i>Class:</label>
+                <select name="class_id" id="classFilter" class="form-select form-select-sm" style="min-width: 140px; border-radius: 8px;" onchange="this.form.submit()">
+                    <option value="all" {% if not selected_class_id %}selected{% endif %}>All Classes</option>
+                    {% for class_item in classes %}
+                    <option value="{{ class_item.id }}" {% if selected_class_id == class_item.id %}selected{% endif %}>{{ class_item.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Filter by Subject -->
+            <div class="d-flex align-items-center gap-1.5">
+                <label for="subjectFilter" class="text-muted fs-8 mb-0 fw-semibold text-nowrap"><i class="fa-solid fa-book me-1 text-primary"></i>Subject:</label>
+                <select name="subject_id" id="subjectFilter" class="form-select form-select-sm" style="min-width: 150px; border-radius: 8px;" onchange="this.form.submit()">
+                    <option value="all" {% if not selected_subject_id %}selected{% endif %}>All Subjects</option>
+                    {% for sub in subjects %}
+                    <option value="{{ sub.id }}" {% if selected_subject_id == sub.id %}selected{% endif %}>{{ sub.name }} ({{ sub.class_assigned.name if sub.class_assigned else 'N/A' }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% if selected_class_id or selected_subject_id %}
+            <a href="{{ url_for('main.enrolled_teachers') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 fs-8">Reset Filters</a>
+            {% endif %}
+        </form>
+
+        <span class="badge bg-primary rounded-pill px-3 py-2 fs-7 shadow-sm">
+            <i class="fa-solid fa-user-check me-1"></i>{{ teachers|length }} Faculty Members
+        </span>
+    </div>
+</div>
+
+{% if teachers %}
+<div class="row g-4">
+    {% for teacher in teachers %}
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white text-center d-flex flex-column">
+            <!-- Faculty Photo -->
+            <div class="mt-2 mb-3">
+                {% if teacher.image_filename %}
+                    <img src="{{ url_for('main.uploaded_face', filename=teacher.image_filename) }}" 
+                         class="rounded-circle shadow-sm border border-3 border-primary" 
+                         style="width: 120px; height: 120px; object-fit: cover;">
+                {% else %}
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary border border-2 border-primary d-flex align-items-center justify-content-center mx-auto" 
+                         style="width: 120px; height: 120px; font-size: 3rem;">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                    </div>
+                {% endif %}
+            </div>
+
+            <h5 class="fw-bold text-dark mb-1">{{ teacher.name }}</h5>
+            
+            <div class="mb-3">
+                {% if teacher.status == 'Approved' %}
+                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-1 rounded-pill fw-semibold fs-8">
+                        <i class="fa-solid fa-check-circle me-1"></i>Approved Faculty
+                    </span>
+                {% else %}
+                    <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-1 rounded-pill fw-semibold fs-8">
+                        <i class="fa-solid fa-clock me-1"></i>Pending Approval
+                    </span>
+                {% endif %}
+            </div>
+
+            <!-- Details Box -->
+            <div class="p-3 bg-light rounded-3 text-start mb-3 fs-8 flex-grow-1">
+                <div class="mb-1.5">
+                    <span class="text-muted"><i class="fa-solid fa-id-badge me-1.5 text-primary"></i>Employee ID:</span>
+                    <strong class="text-dark float-end">{{ teacher.emp_id or 'N/A' }}</strong>
+                </div>
+                <div class="mb-1.5">
+                    <span class="text-muted"><i class="fa-solid fa-envelope me-1.5 text-primary"></i>Email:</span>
+                    <span class="text-dark float-end text-truncate ms-1" style="max-width: 130px;" title="{{ teacher.email }}">{{ teacher.email or 'N/A' }}</span>
+                </div>
+                <div class="mb-1.5">
+                    <span class="text-muted"><i class="fa-solid fa-phone me-1.5 text-primary"></i>Mobile:</span>
+                    <strong class="text-dark float-end">{{ teacher.mobile or 'N/A' }}</strong>
+                </div>
+                
+                <div class="mt-2 pt-2 border-top">
+                    <span class="text-muted d-block mb-1"><i class="fa-solid fa-book-bookmark me-1.5 text-primary"></i>Assigned Subjects:</span>
+                    {% if teacher.subjects %}
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for sub in teacher.subjects %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary fs-9 px-2 py-1 rounded-pill">{{ sub.name }} ({{ sub.class_assigned.name if sub.class_assigned else 'N/A' }})</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <span class="text-muted fst-italic fs-9">No subjects assigned yet</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="mt-auto">
+                <form action="{{ url_for('main.delete_teacher', teacher_id=teacher.id) }}" 
+                      method="POST" 
+                      onsubmit="return confirm('Are you sure you want to remove {{ teacher.name }} from the faculty register?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger w-100 rounded-3 py-1.5 fw-semibold">
+                        <i class="fa-solid fa-trash-can me-1"></i> Delete Faculty Profile
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card p-5 border-0 shadow-sm rounded-4 text-center">
+    <div class="rounded-circle bg-light text-primary d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px; font-size: 2rem;">
+        <i class="fa-solid fa-filter-circle-xmark"></i>
+    </div>
+    <h5 class="fw-bold text-dark mb-1">No Matching Faculty Found</h5>
+    <p class="text-muted fs-7 mb-3">No teachers match the selected class or subject filter criteria.</p>
+    <div>
+        <a href="{{ url_for('main.enrolled_teachers') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">Clear Filters</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

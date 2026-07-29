@@ -53,29 +53,41 @@ def login():
     if current_user.is_authenticated:
         if current_user.role == 'admin':
             return redirect(url_for('main.dashboard'))
+        elif current_user.role == 'teacher':
+            return redirect(url_for('teacher.dashboard'))
         elif current_user.role == 'student':
             return redirect(url_for('student.dashboard'))
 
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        login_role = request.form.get('login_role', 'student')  # role hint from UI tab
+        login_role = request.form.get('login_role', 'student')  # role hint from UI tab ('student', 'teacher', 'admin')
 
         user = User.query.filter_by(email=email).first()
 
         if user and user.check_password(password):
-            # Verify the user is logging in via the correct portal
+            # Check pending approval for Teachers or Users
+            if user.status == 'Pending' or (user.teacher_profile and user.teacher_profile.status == 'Pending'):
+                flash('Your teacher account registration is pending administrator approval. Please wait for an administrator to approve your account.', 'warning')
+                return redirect(url_for('main.index', state='login'))
+
+            # Verify the user is logging in via the correct portal if role hint is passed
             if login_role == 'admin' and user.role != 'admin':
-                flash('This account is not an administrator account. Please use the Student portal.', 'danger')
+                flash('This account is not an administrator account. Please select the correct login portal.', 'danger')
+                return redirect(url_for('main.index', state='login'))
+            if login_role == 'teacher' and user.role != 'teacher':
+                flash('This account is not a teacher account. Please select the correct login portal.', 'danger')
                 return redirect(url_for('main.index', state='login'))
             if login_role == 'student' and user.role != 'student':
-                flash('This account is an administrator account. Please use the Admin portal.', 'danger')
+                flash('This account is not a student account. Please select the correct login portal.', 'danger')
                 return redirect(url_for('main.index', state='login'))
 
             login_user(user)
             flash(f'Welcome back, {user.name}!', 'success')
             if user.role == 'admin':
                 return redirect(url_for('main.dashboard'))
+            elif user.role == 'teacher':
+                return redirect(url_for('teacher.dashboard'))
             elif user.role == 'student':
                 return redirect(url_for('student.dashboard'))
         else:
@@ -138,12 +150,93 @@ def signup():
 
         # --- ADMIN REGISTRATION ---
         if role == 'admin':
-            new_user = User(name=name, email=email, role='admin')
+            new_user = User(name=name, email=email, role='admin', status='Approved')
             new_user.set_password(password)
             db.session.add(new_user)
             db.session.commit()
             flash('Administrator account created successfully! Please login.', 'success')
             return redirect(url_for('main.index', state='login'))
+
+        # --- TEACHER REGISTRATION ---
+        elif role == 'teacher':
+            mobile = request.form.get('mobile', '').strip()
+            emp_id = request.form.get('emp_id', '').strip()
+            photo = request.files.get('student_photo')
+            captured_base64 = request.form.get('captured_image_base64')
+
+            if not emp_id:
+                flash('Employee ID is required for Teacher registration.', 'danger')
+                return redirect(url_for('main.index', state='signup'))
+
+            from models import Teacher
+            if Teacher.query.filter_by(emp_id=emp_id).first():
+                flash('A teacher with this Employee ID is already registered.', 'danger')
+                return redirect(url_for('main.index', state='signup'))
+
+            face_encoding_bytes = None
+            image_filename = None
+
+            if captured_base64 and captured_base64.strip():
+                result = save_base64_image(captured_base64, f"teacher_{emp_id}", name, FACES_FOLDER)
+                if result:
+                    image_filename, filepath = result
+                    try:
+                        image = face_recognition.load_image_file(filepath)
+                        encodings = face_recognition.face_encodings(image)
+                        if len(encodings) == 1:
+                            face_encoding_bytes = encodings[0].tobytes()
+                        elif len(encodings) > 1:
+                            flash('Multiple faces found in photo. Please use a clear image of ONLY yourself.', 'danger')
+                            if os.path.exists(filepath):
+                                os.remove(filepath)
+                            return redirect(url_for('main.index', state='signup'))
+                    except Exception as e:
+                        print(f"Teacher face scan error: {e}")
+            elif photo and photo.filename:
+                os.makedirs(FACES_FOLDER, exist_ok=True)
+                filename = secure_filename(f"teacher_{emp_id}_{name}_{photo.filename}")
+                filepath = os.path.join(FACES_FOLDER, filename)
+                photo.save(filepath)
+
+                try:
+                    image = face_recognition.load_image_file(filepath)
+                    encodings = face_recognition.face_encodings(image)
+                    if len(encodings) == 1:
+                        face_encoding_bytes = encodings[0].tobytes()
+                        image_filename = filename
+                    elif len(encodings) > 1:
+                        flash('Multiple faces found in photo. Please use a clear image of ONLY yourself.', 'danger')
+                        if os.path.exists(filepath):
+                            os.remove(filepath)
+                        return redirect(url_for('main.index', state='signup'))
+                except Exception as e:
+                    print(f"Teacher face scan error: {e}")
+
+            try:
+                new_user = User(name=name, email=email, role='teacher', mobile=mobile or None, status='Pending')
+                new_user.set_password(password)
+                db.session.add(new_user)
+                db.session.flush()
+
+                new_teacher = Teacher(
+                    name=name,
+                    email=email,
+                    emp_id=emp_id,
+                    mobile=mobile or None,
+                    image_filename=image_filename,
+                    face_encoding=face_encoding_bytes,
+                    status='Pending',
+                    user_id=new_user.id
+                )
+                db.session.add(new_teacher)
+                db.session.commit()
+
+                flash('Teacher registration submitted successfully! Your account is pending administrator approval before you can log in.', 'success')
+                return redirect(url_for('main.index', state='login'))
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Teacher registration failed: {e}', 'danger')
+                return redirect(url_for('main.index', state='signup'))
 
         # --- STUDENT REGISTRATION ---
         elif role == 'student':

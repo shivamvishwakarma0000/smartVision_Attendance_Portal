@@ -311,18 +311,48 @@ def delete_class(class_id):
 @login_required
 @admin_required
 def add_teacher():
-    teacher_name = request.form.get('teacher_name')
-    if teacher_name:
-        existing = Teacher.query.filter_by(name=teacher_name, admin_id=current_user.id).first()
-        if existing:
-            flash('Teacher already exists under your profile.', 'warning')
-        else:
-            new_teacher = Teacher(name=teacher_name, admin_id=current_user.id)
-            db.session.add(new_teacher)
-            db.session.commit()
-            flash(f"Teacher '{teacher_name}' added successfully!", 'success')
-    else:
+    teacher_name = request.form.get('teacher_name', '').strip()
+    teacher_email = request.form.get('teacher_email', '').strip().lower()
+    teacher_password = request.form.get('teacher_password', '').strip()
+
+    if not teacher_name:
         flash('Teacher name cannot be empty.', 'warning')
+        return redirect(url_for('main.manage_subjects'))
+
+    existing_teacher = Teacher.query.filter_by(name=teacher_name, admin_id=current_user.id).first()
+    if existing_teacher:
+        flash(f"Teacher '{teacher_name}' already exists under your profile.", 'warning')
+        return redirect(url_for('main.manage_subjects'))
+
+    new_user = None
+    if teacher_email and teacher_password:
+        if User.query.filter_by(email=teacher_email).first():
+            flash(f"Email '{teacher_email}' is already registered to another user.", 'danger')
+            return redirect(url_for('main.manage_subjects'))
+        
+        if len(teacher_password) < 6:
+            flash('Teacher password must be at least 6 characters.', 'danger')
+            return redirect(url_for('main.manage_subjects'))
+
+        new_user = User(name=teacher_name, email=teacher_email, role='teacher')
+        new_user.set_password(teacher_password)
+        db.session.add(new_user)
+        db.session.flush()
+
+    new_teacher = Teacher(
+        name=teacher_name,
+        email=teacher_email or None,
+        admin_id=current_user.id,
+        user_id=new_user.id if new_user else None
+    )
+    db.session.add(new_teacher)
+    db.session.commit()
+    
+    if new_user:
+        flash(f"Teacher '{teacher_name}' and login account '{teacher_email}' created successfully!", 'success')
+    else:
+        flash(f"Teacher '{teacher_name}' added successfully (no login credentials created).", 'success')
+
     return redirect(url_for('main.manage_subjects'))
 
 @main_bp.route('/manage_subjects', methods=['GET', 'POST'])
@@ -365,10 +395,45 @@ def delete_teacher(teacher_id):
     if teacher_to_delete.subjects:
         flash(f"Cannot delete '{teacher_to_delete.name}'. They are still assigned to one or more subjects.", 'danger')
     else:
+        user_account = None
+        if teacher_to_delete.user_id:
+            user_account = User.query.get(teacher_to_delete.user_id)
+
         db.session.delete(teacher_to_delete)
+        if user_account:
+            db.session.delete(user_account)
+
         db.session.commit()
-        flash(f"Teacher '{teacher_to_delete.name}' deleted successfully.", 'success')
+        flash(f"Teacher '{teacher_to_delete.name}' and login profile deleted successfully.", 'success')
     return redirect(url_for('main.manage_subjects'))
+
+@main_bp.route('/admin/change_password', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_change_password():
+    if request.method == 'POST':
+        current_password = request.form.get('current_password', '')
+        new_password = request.form.get('new_password', '')
+        confirm_password = request.form.get('confirm_password', '')
+
+        if not current_user.check_password(current_password):
+            flash('Current master password is incorrect.', 'danger')
+            return redirect(url_for('main.dashboard'))
+
+        if len(new_password) < 6:
+            flash('New password must be at least 6 characters long.', 'danger')
+            return redirect(url_for('main.dashboard'))
+
+        if new_password != confirm_password:
+            flash('New passwords do not match.', 'danger')
+            return redirect(url_for('main.dashboard'))
+
+        current_user.set_password(new_password)
+        db.session.commit()
+        flash('Master Admin password updated successfully!', 'success')
+        return redirect(url_for('main.dashboard'))
+
+    return redirect(url_for('main.dashboard'))
 
 @main_bp.route('/delete_subject/<int:subject_id>', methods=['POST'])
 @login_required
@@ -684,6 +749,46 @@ def view_reports():
     students = sorted(students, key=lambda x: (x.class_assigned.name if x.class_assigned else '', x.name))
     return render_template('view_reports.html', students=students, classes=classes, selected_class_id=selected_class_id)
 
+@main_bp.route('/enrolled_teachers')
+@login_required
+@admin_required
+def enrolled_teachers():
+    class_id = request.args.get('class_id')
+    subject_id = request.args.get('subject_id')
+
+    classes = get_admin_classes()
+    subjects = Subject.query.all()
+
+    query = Teacher.query
+
+    if class_id and class_id != 'all':
+        try:
+            cid = int(class_id)
+            query = query.filter(
+                (Teacher.id.in_(db.session.query(Class.class_teacher_id).filter(Class.id == cid))) |
+                (Teacher.id.in_(db.session.query(Subject.teacher_id).filter(Subject.class_id == cid)))
+            )
+        except ValueError:
+            pass
+
+    if subject_id and subject_id != 'all':
+        try:
+            sid = int(subject_id)
+            query = query.filter(Teacher.subjects.any(Subject.id == sid))
+        except ValueError:
+            pass
+
+    teachers = query.order_by(Teacher.name).all()
+
+    return render_template(
+        'enrolled_teachers.html',
+        teachers=teachers,
+        classes=classes,
+        subjects=subjects,
+        selected_class_id=int(class_id) if class_id and class_id.isdigit() else None,
+        selected_subject_id=int(subject_id) if subject_id and subject_id.isdigit() else None
+    )
+
 @main_bp.route('/delete_student/<int:student_id>', methods=['POST'])
 @login_required
 @admin_required
@@ -753,7 +858,39 @@ def approvals():
         StudentEditRequest.status == 'Pending'
     ).order_by(StudentEditRequest.created_at.desc()).all()
     
-    return render_template('admin_approvals.html', requests=edit_requests)
+    pending_teachers = Teacher.query.filter_by(status='Pending').order_by(Teacher.id.desc()).all()
+
+    return render_template('admin_approvals.html', requests=edit_requests, pending_teachers=pending_teachers)
+
+@main_bp.route('/admin/teacher_approval/<int:teacher_id>/<action>', methods=['POST'])
+@login_required
+@admin_required
+def handle_teacher_approval(teacher_id, action):
+    teacher = Teacher.query.get_or_404(teacher_id)
+    user_acc = User.query.get(teacher.user_id) if teacher.user_id else None
+
+    if action == 'approve':
+        try:
+            teacher.status = 'Approved'
+            if user_acc:
+                user_acc.status = 'Approved'
+            db.session.commit()
+            flash(f"Teacher account for '{teacher.name}' approved successfully! They can now log in.", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error approving teacher: {e}", "danger")
+    elif action == 'reject':
+        try:
+            db.session.delete(teacher)
+            if user_acc:
+                db.session.delete(user_acc)
+            db.session.commit()
+            flash(f"Teacher registration for '{teacher.name}' rejected and removed.", "info")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error rejecting teacher: {e}", "danger")
+
+    return redirect(url_for('main.approvals'))
 
 @main_bp.route('/admin/approval/<int:request_id>/<action>', methods=['POST'])
 @login_required
@@ -930,13 +1067,15 @@ def inject_pending_approvals():
     if current_user.is_authenticated and current_user.role == 'admin':
         try:
             class_ids = [c.id for c in get_admin_classes()]
-            count = StudentEditRequest.query.join(Student).filter(
+            student_req_count = StudentEditRequest.query.join(Student).filter(
                 Student.class_id.in_(class_ids),
                 StudentEditRequest.status == 'Pending'
             ).count()
+            teacher_pending_count = Teacher.query.filter_by(status='Pending').count()
+            total_pending = student_req_count + teacher_pending_count
             unclassified_count = Student.query.filter(Student.class_id == None).count()
             return {
-                'pending_approvals_count': count,
+                'pending_approvals_count': total_pending,
                 'unclassified_students_count': unclassified_count
             }
         except Exception:

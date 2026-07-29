@@ -1,17 +1,85 @@
 {% extends "base.html" %}
 
 {% block title %}Pending Approvals - SmartVision{% endblock %}
-{% block page_title %}Profile Change Approvals{% endblock %}
+{% block page_title %}Administrator Approvals Queue{% endblock %}
 
 {% block content %}
+<!-- Section 1: Pending Teacher Registrations -->
 <div class="card p-4 shadow-sm border-0 mb-4 fade-in">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold text-dark mb-0"><i class="fa-solid fa-user-shield me-2 text-primary"></i> Student Change Requests Queue</h4>
-        <span class="badge badge-attendance badge-present py-2 px-3 fs-7">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4 class="fw-bold text-dark mb-0"><i class="fa-solid fa-chalkboard-user me-2 text-info"></i> Pending Teacher Registration Approvals</h4>
+        <span class="badge bg-info text-white py-2 px-3 fs-7 rounded-pill">
+            {{ pending_teachers|length }} Pending Teachers
+        </span>
+    </div>
+    <p class="text-muted mb-0">Review faculty member self-registrations. Verify Employee ID and photo before granting portal access.</p>
+</div>
+
+{% if pending_teachers %}
+<div class="row g-4 mb-5">
+    {% for teacher in pending_teachers %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
+            <div class="text-center mb-3 pt-2">
+                {% if teacher.image_filename %}
+                    <img src="{{ url_for('main.uploaded_face', filename=teacher.image_filename) }}" 
+                         class="rounded-circle shadow-sm border border-3 border-info" 
+                         style="width: 100px; height: 100px; object-fit: cover;">
+                {% else %}
+                    <div class="rounded-circle bg-info bg-opacity-10 text-info border border-info d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                {% endif %}
+                <h5 class="fw-bold text-dark mt-3 mb-1">{{ teacher.name }}</h5>
+                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill">Pending Approval</span>
+            </div>
+
+            <div class="bg-light p-3 rounded-3 mb-3 fs-8">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Employee ID:</span>
+                    <strong class="text-dark">{{ teacher.emp_id or 'N/A' }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Email:</span>
+                    <strong class="text-dark">{{ teacher.email or 'N/A' }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Mobile:</span>
+                    <strong class="text-dark">{{ teacher.mobile or 'N/A' }}</strong>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-auto">
+                <form action="{{ url_for('main.handle_teacher_approval', teacher_id=teacher.id, action='approve') }}" method="POST" class="flex-grow-1">
+                    <button type="submit" class="btn btn-success w-100 fw-bold rounded-3">
+                        <i class="fa-solid fa-check me-1"></i> Approve
+                    </button>
+                </form>
+                <form action="{{ url_for('main.handle_teacher_approval', teacher_id=teacher.id, action='reject') }}" method="POST" class="flex-grow-1" onsubmit="return confirm('Are you sure you want to reject this teacher registration?');">
+                    <button type="submit" class="btn btn-outline-danger w-100 rounded-3">
+                        <i class="fa-solid fa-xmark me-1"></i> Reject
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card p-4 border-0 shadow-sm rounded-4 mb-4 text-center">
+    <p class="text-muted mb-0"><i class="fa-solid fa-circle-check text-success me-2"></i>No pending teacher registrations to review.</p>
+</div>
+{% endif %}
+
+<!-- Section 2: Student Change Requests -->
+<div class="card p-4 shadow-sm border-0 mb-4 fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4 class="fw-bold text-dark mb-0"><i class="fa-solid fa-user-shield me-2 text-primary"></i> Student Profile Change Requests</h4>
+        <span class="badge bg-primary text-white py-2 px-3 fs-7 rounded-pill">
             {{ requests|length }} Pending Reviews
         </span>
     </div>
-    <p class="text-muted">Review student-submitted profile updates below. Compare changes side-by-side, verify new face registration photos, and approve/reject updates instantly.</p>
+    <p class="text-muted mb-0">Review student-submitted profile updates below.</p>
 </div>
 
 {% for req in requests %}
@@ -22,13 +90,10 @@
             <span class="text-muted fs-8">Submitted on {{ req.created_at.strftime('%B %d, %Y at %H:%M') }}</span>
         </div>
         <div class="d-flex gap-2">
-            <!-- Approve Button Form -->
             <form action="{{ url_for('main.handle_approval', request_id=req.id, action='approve') }}" method="POST">
                 <button type="submit" class="btn btn-success px-4 fw-bold shadow-sm">Approve</button>
             </form>
-            
-            <!-- Reject Button Form -->
-            <form action="{{ url_for('main.handle_approval', request_id=req.id, action='reject') }}" method="POST" onsubmit="return confirm('Are you sure you want to reject and discard this profile change request?');">
+            <form action="{{ url_for('main.handle_approval', request_id=req.id, action='reject') }}" method="POST" onsubmit="return confirm('Are you sure you want to reject this profile change request?');">
                 <button type="submit" class="btn btn-outline-danger px-4">Reject</button>
             </form>
         </div>
@@ -46,7 +111,7 @@
                 </div>
                 <div class="mb-2">
                     <span class="text-muted fs-8">Class Level:</span>
-                    <div class="fw-semibold text-dark">{{ req.student.class_assigned.name }}</div>
+                    <div class="fw-semibold text-dark">{{ req.student.class_assigned.name if req.student.class_assigned else 'N/A' }}</div>
                 </div>
                 <div class="mb-2">
                     <span class="text-muted fs-8">Roll Number:</span>
@@ -57,7 +122,6 @@
                     <div class="fw-semibold text-dark">{{ req.student.enrollment_no }}</div>
                 </div>
                 
-                <!-- Current photo display -->
                 <div class="mt-4 text-center">
                     <span class="text-muted fs-8 d-block mb-2">Registered Face Photo:</span>
                     {% if req.student.image_filename %}
@@ -103,14 +167,10 @@
                     </div>
                 </div>
                 
-                <!-- Requested Photo display -->
                 <div class="mt-4 text-center">
                     <span class="text-muted fs-8 d-block mb-2">Requested Face Photo:</span>
                     {% if req.new_image_filename %}
                         <div class="scan-box-wrapper mx-auto shadow-sm border border-2 {% if req.new_image_filename != req.student.image_filename %}border-success{% endif %}" style="width: 130px; height: 130px;">
-                            {% if req.new_image_filename != req.student.image_filename %}
-                                <div class="scan-laser-line" style="animation-duration: 2s;"></div>
-                            {% endif %}
                             <img src="{{ url_for('main.uploaded_face', filename=req.new_image_filename) }}" 
                                  style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
@@ -125,9 +185,8 @@
     </div>
 </div>
 {% else %}
-<div class="text-center py-5">
-    <span class="fs-1 text-success"><i class="fa-solid fa-circle-check"></i></span>
-    <h5 class="text-muted mt-3 mb-0">No pending profile change requests in queue. You are all caught up!</h5>
+<div class="card p-4 border-0 shadow-sm rounded-4 text-center">
+    <p class="text-muted mb-0"><i class="fa-solid fa-circle-check text-success me-2"></i>No pending student profile change requests in queue.</p>
 </div>
 {% endfor %}
 {% endblock %}

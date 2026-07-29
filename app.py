@@ -33,10 +33,12 @@ def create_app():
     from auth.routes import auth_bp
     from main.routes import main_bp
     from student.routes import student_bp
+    from teacher.routes import teacher_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(student_bp)
+    app.register_blueprint(teacher_bp)
 
     # Run SQLite safe structural migrations on startup
     db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', 'sqlite:///smartvision.db')
@@ -66,12 +68,20 @@ def setup_initial_data():
         db.session.add(admin)
         print("[Database Seed] Default Admin user created: admin@smartvision.com / password123")
     
-    # Create default Teachers if none exists
+    # Create default Teachers and their User accounts if none exists
     if not Teacher.query.first():
-        teacher1 = Teacher(name='Dr. Sharma')
-        teacher2 = Teacher(name='Prof. Singh')
+        user1 = User(name='Dr. Sharma', email='sharma@smartvision.com', role='teacher')
+        user1.set_password('password123')
+        user2 = User(name='Prof. Singh', email='singh@smartvision.com', role='teacher')
+        user2.set_password('password123')
+        
+        db.session.add_all([user1, user2])
+        db.session.flush()
+
+        teacher1 = Teacher(name='Dr. Sharma', email='sharma@smartvision.com', user_id=user1.id)
+        teacher2 = Teacher(name='Prof. Singh', email='singh@smartvision.com', user_id=user2.id)
         db.session.add_all([teacher1, teacher2])
-        print("[Database Seed] Default Teachers added.")
+        print("[Database Seed] Default Teachers created with accounts: sharma@smartvision.com & singh@smartvision.com / password123")
         
     db.session.commit()
 

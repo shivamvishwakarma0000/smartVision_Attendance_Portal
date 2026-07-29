@@ -10,11 +10,14 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     mobile = db.Column(db.String(20), nullable=True)  # For OTP delivery
     password_hash = db.Column(db.String(255), nullable=True) # Nullable to support Google-only signups
-    role = db.Column(db.String(20), default='user') # 'admin' or 'student'
+    role = db.Column(db.String(20), default='user') # 'admin', 'teacher', or 'student'
+    status = db.Column(db.String(20), default='Approved') # 'Pending', 'Approved', 'Rejected'
     google_id = db.Column(db.String(100), nullable=True) # For Gmail Login
 
     # Relationship to get the student record if role is student
-    student_profile = db.relationship('Student', backref='user_account', uselist=False, lazy=True)
+    student_profile = db.relationship('Student', backref='user_account', uselist=False, lazy=True, foreign_keys='Student.user_id')
+    # Relationship to get the teacher record if role is teacher
+    teacher_profile = db.relationship('Teacher', backref='user_account', uselist=False, lazy=True, foreign_keys='Teacher.user_id')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
@@ -39,7 +42,14 @@ class Teacher(db.Model):
     __tablename__ = 'teachers'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=True)
+    emp_id = db.Column(db.String(50), nullable=True)
+    mobile = db.Column(db.String(20), nullable=True)
+    image_filename = db.Column(db.String(255), nullable=True)
+    face_encoding = db.Column(db.LargeBinary, nullable=True)
+    status = db.Column(db.String(20), default='Approved') # 'Pending', 'Approved', 'Rejected'
     admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True) # Multi-tenancy
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, unique=True) # Associated User login account
     
     subjects = db.relationship('Subject', backref='teacher', lazy=True)
 
