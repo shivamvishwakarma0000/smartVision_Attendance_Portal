@@ -13,6 +13,9 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
+# Install pre-compiled binary wheel for dlib to prevent slow C++ compilation timeouts
+RUN pip install --no-cache-dir dlib-bin || true
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir --prefer-binary -r requirements.txt
 
