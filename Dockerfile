@@ -1,34 +1,30 @@
-# Use a lightweight miniconda base image to install precompiled dlib without source compilation
-FROM continuumio/miniconda3:latest
+FROM python:3.10-slim
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    DEBIAN_FRONTEND=noninteractive
-
-# Set work directory
-WORKDIR /app
-
-# Install system dependencies required for OpenCV/GUI libraries
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install system dependencies required by dlib, face_recognition, OpenCV
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
     libgl1 \
     libglib2.0-0 \
-    && apt-get clean \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pre-compiled dlib from conda-forge (prevents GCC OOM compilation errors)
-RUN conda install -y -c conda-forge dlib python=3.10 && conda clean -afy
+WORKDIR /app
 
-# Copy and install python dependencies via pip
-COPY requirements.txt /app/
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project files
-COPY . /app/
+COPY . .
 
-# Expose port (Hugging Face Spaces uses 7860, Render overrides via PORT env)
+# Create required directories
+RUN mkdir -p uploads/faces temp_uploads instance
+
+# Expose Hugging Face default port 7860
 EXPOSE 7860
 
-# Start app using Gunicorn with multi-threading to prevent locks during face scans
-CMD ["gunicorn", "--bind", "0.0.0.0:7860", "app:app", "--threads", "4", "--workers", "1", "--timeout", "120"]
+ENV PORT=7860
+ENV HOST=0.0.0.0
 
+CMD ["gunicorn", "--bind", "0.0.0.0:7860", "--workers", "2", "--timeout", "120", "app:app"]

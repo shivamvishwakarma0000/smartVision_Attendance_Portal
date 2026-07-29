@@ -89,5 +89,8 @@ def setup_initial_data():
 app = create_app()
 
 if __name__ == '__main__':
-    # Run the development server (threaded is True by default to prevent blocking on heavy deep-learning scans)
-    app.run(host='127.0.0.1', port=9999, debug=True)
+    import os
+    host = os.environ.get("HOST", "0.0.0.0")
+    port = int(os.environ.get("PORT", 7860))
+    # Run server (threaded is True by default to prevent blocking on heavy deep-learning scans)
+    app.run(host=host, port=port, debug=True)
