@@ -3,12 +3,13 @@ name: Sync to Hugging Face Hub
 on:
   push:
     branches: [ master, main ]
+  workflow_dispatch:
 
 jobs:
   sync-to-hub:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -16,8 +17,11 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          if [ -n "$HF_TOKEN" ]; then
-            git push --force https://shivan8858:$HF_TOKEN@huggingface.co/spaces/shivan8858/smartVision_Attendance_Portal HEAD:main
-          else
-            echo "HF_TOKEN secret not set in GitHub repository settings. Skipping HF push."
+          if [ -z "$HF_TOKEN" ]; then
+            echo "HF_TOKEN is missing in GitHub Secrets. Please add HF_TOKEN in GitHub Settings -> Secrets -> Actions."
+            exit 1
           fi
+          git config --global user.email "shivam@smartvision.com"
+          git config --global user.name "shivan8858"
+          git remote add hf https://shivan8858:${HF_TOKEN}@huggingface.co/spaces/shivan8858/smartVision_Attendance_Portal
+          git push --force hf master:main
