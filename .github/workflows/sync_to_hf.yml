@@ -17,7 +17,7 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           if [ -n "$HF_TOKEN" ]; then
-            git push --force https://shivamvishwakarma0000:$HF_TOKEN@huggingface.co/spaces/shivamvishwakarma0000/smartVision_Attendance_Portal HEAD:main
+            git push --force https://shivan8858:$HF_TOKEN@huggingface.co/spaces/shivan8858/smartVision_Attendance_Portal HEAD:main
           else
             echo "HF_TOKEN secret not set in GitHub repository settings. Skipping HF push."
           fi
