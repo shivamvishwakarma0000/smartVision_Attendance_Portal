@@ -85,12 +85,18 @@ def setup_initial_data():
         
     db.session.commit()
 
-# Create the application instance for Gunicorn production deployment (Gunicorn looks for 'app')
+# Create the application instance for production deployment
 app = create_app()
+
+# Mount Flask app on Gradio for Hugging Face free tier compatibility
+try:
+    import gradio as gr
+    demo = gr.mount_gradio_app(app, gr.Interface(fn=lambda: None, inputs=[], outputs=[]), path="/portal_status")
+except Exception as e:
+    pass
 
 if __name__ == '__main__':
     import os
     host = os.environ.get("HOST", "0.0.0.0")
     port = int(os.environ.get("PORT", 7860))
-    # Run server (threaded is True by default to prevent blocking on heavy deep-learning scans)
     app.run(host=host, port=port, debug=True)

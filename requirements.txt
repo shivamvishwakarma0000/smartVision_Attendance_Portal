@@ -7,4 +7,5 @@ werkzeug
 gunicorn
 authlib
 requests
+gradio
 setuptools<76.0.0

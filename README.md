@@ -1,10 +1,11 @@
 ---
-title: SmartVision Portal
+title: SmartVision Attendance Portal
 emoji: 🚀
 colorFrom: indigo
 colorTo: purple
-sdk: docker
-app_port: 7860
+sdk: gradio
+sdk_version: 4.21.0
+app_file: app.py
 pinned: false
 ---
 
