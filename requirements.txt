@@ -1,6 +1,7 @@
 flask
 flask-login
 flask-sqlalchemy
+Pillow
 numpy
 werkzeug
 gunicorn
