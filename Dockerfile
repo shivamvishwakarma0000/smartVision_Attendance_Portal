@@ -30,5 +30,5 @@ EXPOSE 8080 7860
 ENV PORT=8080
 ENV HOST=0.0.0.0
 
-# Ultra-lightweight Gunicorn process footprint with verbose error logging to stdout/stderr
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8080} --access-logfile - --error-logfile - --log-level debug --workers 1 --threads 2 --timeout 120 app:app"]
+# Optimized Gunicorn multi-threading concurrency (2 workers x 4 threads) for fast response times
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8080} --access-logfile - --error-logfile - --workers 2 --threads 4 --timeout 120 app:app"]

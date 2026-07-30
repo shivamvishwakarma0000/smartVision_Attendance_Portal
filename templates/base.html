@@ -37,7 +37,10 @@
         <div class="sidebar" id="sidebar">
             <div>
                 <h3 class="sidebar-header d-flex align-items-center gap-2.5">
-                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="rounded" style="width: 36px; height: 36px; object-fit: cover; border: 1.5px solid rgba(255, 255, 255, 0.15);">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="rounded" style="width: 36px; height: 36px; object-fit: cover; border: 1.5px solid rgba(255, 255, 255, 0.15);" onerror="this.style.display='none'; document.getElementById('sidebar-logo-fallback').classList.remove('d-none');">
+                    <span id="sidebar-logo-fallback" class="d-none rounded bg-primary d-inline-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: 1.5px solid rgba(255, 255, 255, 0.15);">
+                        <i class="fa-solid fa-eye text-white fs-6"></i>
+                    </span>
                     SmartVision
                 </h3>
                 

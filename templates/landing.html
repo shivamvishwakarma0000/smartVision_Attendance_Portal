@@ -23,7 +23,12 @@
         <!-- Top Header / Logo -->
         <div class="d-flex align-items-center justify-content-between position-relative z-10">
             <div class="d-flex align-items-center gap-3">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SmartVision Logo" class="rounded-3 border border-white-50 shadow-lg" style="width: 46px; height: 46px; object-fit: cover;">
+                <div class="position-relative">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SmartVision Logo" class="rounded-3 border border-white-50 shadow-lg" style="width: 46px; height: 46px; object-fit: cover;" onerror="this.style.display='none'; document.getElementById('landing-logo-fallback').classList.remove('d-none');">
+                    <div id="landing-logo-fallback" class="d-none rounded-3 border border-white-50 shadow-lg d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+                        <i class="fa-solid fa-eye text-white fs-4"></i>
+                    </div>
+                </div>
                 <div>
                     <h4 class="fw-extrabold m-0" style="letter-spacing: -0.5px; background: linear-gradient(135deg, #ffffff 0%, #c7d2fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 1.45rem;">
                         SmartVision

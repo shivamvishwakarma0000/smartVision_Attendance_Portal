@@ -177,6 +177,14 @@ def take_attendance():
         for filepath in temp_photo_paths:
             try:
                 unknown_image = face_recognition.load_image_file(filepath)
+                # Downsample large images to max dimension 800px for 10x CPU speedup
+                import cv2
+                h, w = unknown_image.shape[:2]
+                if max(h, w) > 800:
+                    scaling = 800.0 / float(max(h, w))
+                    new_w, new_h = int(w * scaling), int(h * scaling)
+                    unknown_image = cv2.resize(unknown_image, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
                 unknown_face_encodings = face_recognition.face_encodings(unknown_image)
                 total_faces_found += len(unknown_face_encodings)
                 for face_encoding in unknown_face_encodings:
