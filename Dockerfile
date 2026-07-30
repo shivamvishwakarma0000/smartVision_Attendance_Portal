@@ -30,5 +30,5 @@ EXPOSE 8080 7860
 ENV PORT=8080
 ENV HOST=0.0.0.0
 
-# Optimized Gunicorn multi-threading concurrency (2 workers x 4 threads) for fast response times
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8080} --access-logfile - --error-logfile - --workers 2 --threads 4 --timeout 120 app:app"]
+# Memory-safe Gunicorn footprint (~39MB RAM) optimized for 256MB free plan limits
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8080} --access-logfile - --error-logfile - --workers 1 --threads 2 --timeout 120 app:app"]
