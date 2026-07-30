@@ -1,8 +1,6 @@
 flask
 flask-login
 flask-sqlalchemy
-dlib-bin
-face-recognition
 numpy
 werkzeug
 gunicorn
