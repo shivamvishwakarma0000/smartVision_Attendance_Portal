@@ -1,0 +1,17 @@
+venv/
+.venv/
+.system_venv/
+__pycache__/
+*.pyc
+*.pyo
+*.db
+instance/
+uploads/
+temp_uploads/
+.git
+.gitignore
+.idea/
+.DS_Store
+*.md
+research_paper.tex
+Project_QA/

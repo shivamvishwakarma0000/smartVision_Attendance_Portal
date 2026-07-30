@@ -88,12 +88,6 @@ def setup_initial_data():
 # Create the application instance for production deployment
 app = create_app()
 
-# Mount Flask app on Gradio for Hugging Face free tier compatibility
-try:
-    import gradio as gr
-    demo = gr.mount_gradio_app(app, gr.Interface(fn=lambda: None, inputs=[], outputs=[]), path="/portal_status")
-except Exception as e:
-    pass
 
 if __name__ == '__main__':
     import os
