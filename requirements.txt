@@ -8,3 +8,4 @@ gunicorn
 authlib
 requests
 setuptools<76.0.0
+opencv-python-headless
