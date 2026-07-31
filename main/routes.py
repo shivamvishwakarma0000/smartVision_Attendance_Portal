@@ -35,8 +35,11 @@ def admin_required(f):
 def get_admin_classes():
     return Class.query.filter((Class.admin_id == None) | (Class.admin_id == current_user.id)).all()
 
-def get_admin_teachers():
-    return Teacher.query.filter((Teacher.admin_id == None) | (Teacher.admin_id == current_user.id)).all()
+def get_admin_teachers(approved_only=True):
+    query = Teacher.query.filter((Teacher.admin_id == None) | (Teacher.admin_id == current_user.id))
+    if approved_only:
+        query = query.filter(Teacher.status != 'Pending')
+    return query.all()
 
 def get_admin_subjects():
     return Subject.query.filter((Subject.admin_id == None) | (Subject.admin_id == current_user.id)).all()
@@ -886,7 +889,7 @@ def enrolled_teachers():
     classes = get_admin_classes()
     subjects = Subject.query.all()
 
-    query = Teacher.query
+    query = Teacher.query.filter(Teacher.status != 'Pending')
 
     if class_id and class_id != 'all':
         try:
