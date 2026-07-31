@@ -8,7 +8,7 @@ from flask import render_template, redirect, url_for, flash, request, Blueprint,
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
-from extensions import db
+from extensions import db, get_current_date, get_current_time_str, get_current_datetime_str
 from models import User, Teacher, Class, Subject, Student, Attendance
 from auth.routes import save_base64_image
 
@@ -52,7 +52,7 @@ def dashboard():
     assigned_class_ids = set([sub.class_id for sub in subjects] + [c.id for c in directed_classes])
     assigned_classes = Class.query.filter(Class.id.in_(assigned_class_ids)).all() if assigned_class_ids else []
 
-    today = date.today()
+    today = get_current_date()
     subject_stats = []
     
     for subject in subjects:
@@ -106,7 +106,7 @@ def take_attendance():
         return redirect(url_for('auth.logout'))
 
     subjects = Subject.query.filter_by(teacher_id=teacher.id).all()
-    today = date.today()
+    today = get_current_date()
     results = None
 
     if request.method == 'POST':
@@ -150,7 +150,7 @@ def take_attendance():
         if has_uploaded_files:
             for group_photo in group_photos:
                 if group_photo.filename:
-                    filename = secure_filename(f"teacher_{teacher.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{group_photo.filename}")
+                    filename = secure_filename(f"teacher_{teacher.id}_{get_current_datetime_str()}_{group_photo.filename}")
                     filepath = os.path.join(GROUP_PHOTOS_FOLDER, filename)
                     group_photo.save(filepath)
                     temp_photo_paths.append(filepath)
@@ -166,7 +166,7 @@ def take_attendance():
                         if ext == 'jpeg':
                             ext = 'jpg'
                         image_data = base64.b64decode(imgstr)
-                        filename = f"teacher_cam_{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:8]}.{ext}"
+                        filename = f"teacher_cam_{get_current_datetime_str()}_{uuid.uuid4().hex[:8]}.{ext}"
                         filepath = os.path.join(GROUP_PHOTOS_FOLDER, filename)
                         with open(filepath, 'wb') as f:
                             f.write(image_data)
@@ -207,7 +207,7 @@ def take_attendance():
                     except Exception:
                         pass
 
-        time_now = datetime.now().strftime('%I:%M %p')
+        time_now = get_current_time_str()
         for student_id in present_student_ids:
             if not Attendance.query.filter_by(student_id=student_id, date=today, subject_id=subject_id).first():
                 new_attendance = Attendance(

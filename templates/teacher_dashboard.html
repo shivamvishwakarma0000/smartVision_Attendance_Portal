@@ -59,19 +59,19 @@
         </div>
     </div>
 
-    <!-- Quick Stats Cards (Compact & Comfortable Typography) -->
+    <!-- Quick Stats Cards (4 Columns Grid) -->
     <div class="row g-3 mb-4">
         <!-- Card 1: Assigned Subjects -->
-        <div class="col-md-4">
+        <div class="col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm rounded-3 h-100 p-2.5 bg-white">
                 <div class="card-body p-2 d-flex align-items-center">
-                    <div class="rounded-3 p-2.5 me-3 bg-primary bg-opacity-10 text-primary fs-4 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                    <div class="rounded-3 p-2.5 me-3 bg-primary bg-opacity-10 text-primary fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                         <i class="fas fa-book-open"></i>
                     </div>
                     <div>
                         <span class="text-muted fs-8 text-uppercase tracking-wider fw-semibold d-block mb-0.5">Assigned Subjects</span>
                         <div class="d-flex align-items-baseline">
-                            <h4 class="fw-bold mb-0 text-dark me-2">{{ subjects|length }}</h4>
+                            <h5 class="fw-bold mb-0 text-dark me-2">{{ subjects|length }}</h5>
                             <span class="fs-8 text-muted">Subject Register{% if subjects|length != 1 %}s{% endif %}</span>
                         </div>
                     </div>
@@ -80,16 +80,16 @@
         </div>
 
         <!-- Card 2: Directed Classes -->
-        <div class="col-md-4">
+        <div class="col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm rounded-3 h-100 p-2.5 bg-white">
                 <div class="card-body p-2 d-flex align-items-center">
-                    <div class="rounded-3 p-2.5 me-3 bg-success bg-opacity-10 text-success fs-4 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                    <div class="rounded-3 p-2.5 me-3 bg-success bg-opacity-10 text-success fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                         <i class="fas fa-chalkboard-user"></i>
                     </div>
                     <div>
                         <span class="text-muted fs-8 text-uppercase tracking-wider fw-semibold d-block mb-0.5">Directed Classes</span>
                         <div class="d-flex align-items-baseline">
-                            <h4 class="fw-bold mb-0 text-dark me-2">{{ directed_classes|length }}</h4>
+                            <h5 class="fw-bold mb-0 text-dark me-2">{{ directed_classes|length }}</h5>
                             <span class="fs-8 text-muted">As Class Teacher</span>
                         </div>
                     </div>
@@ -97,27 +97,47 @@
             </div>
         </div>
 
-        <!-- Card 3: Today's Date -->
-        <div class="col-md-4">
+        <!-- Card 3: Class Directorship Badge -->
+        <div class="col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm rounded-3 h-100 p-2.5 bg-white">
                 <div class="card-body p-2 d-flex align-items-center">
-                    <div class="rounded-3 p-2.5 me-3 bg-info bg-opacity-10 text-info fs-4 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                    <div class="rounded-3 p-2.5 me-3 bg-warning bg-opacity-10 text-warning fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted fs-8 text-uppercase tracking-wider fw-semibold d-block mb-0.5">Class Directorship</span>
+                        <div class="d-flex align-items-baseline">
+                            {% if directed_classes %}
+                            <h5 class="fw-bold mb-0 text-primary" style="font-size: 0.95rem;">{{ directed_classes|map(attribute='name')|join(', ') }}</h5>
+                            {% else %}
+                            <span class="fs-8 text-muted fw-semibold">Unassigned</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: Today's Date -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-3 h-100 p-2.5 bg-white">
+                <div class="card-body p-2 d-flex align-items-center">
+                    <div class="rounded-3 p-2.5 me-3 bg-info bg-opacity-10 text-info fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                         <i class="fas fa-calendar-day"></i>
                     </div>
                     <div>
                         <span class="text-muted fs-8 text-uppercase tracking-wider fw-semibold d-block mb-0.5">Today's Date</span>
-                        <h4 class="fw-bold mb-0 text-dark" style="font-size: 1.15rem;">{{ today }}</h4>
+                        <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.05rem;">{{ today }}</h5>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Subject & Class Cards -->
-    <div class="row g-4 mb-4">
-        <!-- Left: Subjects & Attendance Summary Table -->
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-4 h-100">
+    <!-- Subjects & Attendance Summary Table (Full Width Single-Frame View) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-header bg-white border-0 pt-3.5 px-4 pb-0 d-flex justify-content-between align-items-center">
                     <h6 class="fw-bold mb-0 text-dark fs-7"><i class="fas fa-layer-group text-primary me-2"></i>My Subjects & Attendance Summary</h6>
                     <a href="{{ url_for('teacher.view_reports') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fs-8 fw-semibold">View All Reports</a>
@@ -125,7 +145,7 @@
                 <div class="card-body px-4 py-3">
                     {% if subject_stats %}
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0 fs-8">
+                        <table class="table table-hover align-middle mb-0 fs-8 w-100">
                             <thead class="table-light">
                                 <tr>
                                     <th>Subject Name</th>
@@ -152,7 +172,7 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <span class="me-2 fw-bold text-dark">{{ stat.avg_attendance }}%</span>
-                                            <div class="progress flex-grow-1" style="height: 6px; min-width: 50px;">
+                                            <div class="progress flex-grow-1" style="height: 6px; min-width: 60px;">
                                                 <div class="progress-bar {% if stat.avg_attendance >= 75 %}bg-success{% elif stat.avg_attendance >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
                                                      role="progressbar" style="width: {{ stat.avg_attendance }}%"></div>
                                             </div>
@@ -173,39 +193,6 @@
                         <i class="fas fa-book-open text-muted fs-3 mb-2"></i>
                         <h6 class="text-muted fw-bold fs-8 mb-1">No subjects currently assigned.</h6>
                         <p class="text-muted fs-8 mb-0">Please contact your department administrator to assign subjects to your profile.</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Right: Class Directorship Card -->
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 h-100">
-                <div class="card-header bg-white border-0 pt-3.5 px-4 pb-0">
-                    <h6 class="fw-bold mb-0 text-dark fs-7"><i class="fas fa-user-shield text-primary me-2"></i>Class Directorship</h6>
-                </div>
-                <div class="card-body px-4 py-3">
-                    {% if directed_classes %}
-                    {% for c in directed_classes %}
-                    <div class="p-3 bg-light rounded-3 mb-2.5 border border-primary border-opacity-10">
-                        <div class="d-flex justify-content-between align-items-center mb-1.5">
-                            <h6 class="fw-bold text-dark mb-0 fs-8"><i class="fas fa-graduation-cap text-primary me-1.5"></i>{{ c.name }}</h6>
-                            <span class="badge bg-primary rounded-pill px-2 py-0.5 fs-8">Class Teacher</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center text-muted fs-8">
-                            <span><i class="fas fa-users text-primary me-1"></i>Enrolled Students:</span>
-                            <strong class="text-dark">{{ c.students|length }} Students</strong>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    {% else %}
-                    <div class="text-center py-4 text-muted">
-                        <div class="rounded-circle bg-light text-primary d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 48px; height: 48px;">
-                            <i class="fas fa-school fs-4"></i>
-                        </div>
-                        <p class="fs-8 mb-1 fw-semibold text-dark">No Class Directorship Assigned</p>
-                        <p class="fs-8 text-muted mb-0" style="line-height: 1.4;">You are not designated as a Class Teacher for any specific class branch. Administrator assigns Class Directorship when managing class registers.</p>
                     </div>
                     {% endif %}
                 </div>

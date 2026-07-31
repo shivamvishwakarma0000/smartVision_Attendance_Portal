@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 from collections import defaultdict
 from functools import wraps
 
-from extensions import db
+from extensions import db, get_current_date, get_current_time_str, get_current_datetime_str
 from models import User, Class, Teacher, Subject, Student, Attendance, StudentEditRequest
 from auth.routes import save_base64_image
 
@@ -90,7 +90,7 @@ def get_retention_risk_students():
     if not admin_student_ids:
         return []
 
-    five_days_ago = date.today() - timedelta(days=5)
+    five_days_ago = get_current_date() - timedelta(days=5)
 
     # 1. Get IDs of all students with *any* attendance in the last 5 days
     attended_student_ids = db.session.query(Attendance.student_id).filter(
@@ -123,7 +123,7 @@ def dashboard():
     
     subject_names = [sub.name for sub in subjects]
     attendance_percentages = []
-    today = date.today()
+    today = get_current_date()
 
     for subject in subjects:
         # Count registered students in this subject's class
@@ -552,7 +552,7 @@ def register_student():
 @login_required
 @admin_required
 def take_attendance():
-    today = date.today()
+    today = get_current_date()
     results = None
 
     if request.method == 'POST':
@@ -597,7 +597,7 @@ def take_attendance():
         if has_uploaded_files:
             for group_photo in group_photos:
                 if group_photo.filename:
-                    filename = secure_filename(f"upload_{datetime.now().strftime('%Y%m%d%H%M%S')}_{group_photo.filename}")
+                    filename = secure_filename(f"upload_{get_current_datetime_str()}_{group_photo.filename}")
                     filepath = os.path.join(GROUP_PHOTOS_FOLDER, filename)
                     group_photo.save(filepath)
                     temp_photo_paths.append(filepath)
@@ -614,7 +614,7 @@ def take_attendance():
                         if ext == 'jpeg':
                             ext = 'jpg'
                         image_data = base64.b64decode(imgstr)
-                        filename = f"camera_{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:8]}.{ext}"
+                        filename = f"camera_{get_current_datetime_str()}_{uuid.uuid4().hex[:8]}.{ext}"
                         filepath = os.path.join(GROUP_PHOTOS_FOLDER, filename)
                         with open(filepath, 'wb') as f:
                             f.write(image_data)
@@ -657,7 +657,7 @@ def take_attendance():
                         print(f"Error removing temp file {filepath}: {e}")
 
         # Record Present records
-        time_now = datetime.now().strftime('%I:%M %p')
+        time_now = get_current_time_str()
         for student_id in present_student_ids:
             if not Attendance.query.filter_by(student_id=student_id, date=today, subject_id=subject_id).first():
                 new_attendance = Attendance(
@@ -833,7 +833,7 @@ def api_live_detect():
 @login_required
 @admin_required
 def delete_todays_attendance():
-    today = date.today()
+    today = get_current_date()
     admin_student_ids = [s.id for s in get_admin_students()]
     try:
         # Delete only records belonging to the admin's students
@@ -1092,7 +1092,7 @@ def retention_risk_report():
     
     risk_students = get_retention_risk_students()
 
-    today = date.today()
+    today = get_current_date()
     five_days_ago = today - timedelta(days=5)
 
     student_details = []
